@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <!-- Hanzi Writer CDN -->
   <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <!-- SheetJS for Excel (.xlsx) and CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     /* Traditional Chinese Practice Grid (米字格) */
     .mizige-grid {
@@ -66,14 +68,17 @@
           <p class="text-xs text-slate-500">단어학습 · 구문학습 · 획순 글자쓰기 연계 시스템</p>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="export-json-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1">
-          <span>📤 커리큘럼 복사/내보내기</span>
+      <div class="flex items-center gap-2 flex-wrap">
+        <button id="open-spreadsheet-modal-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1 shadow-sm">
+          <span>📊 엑셀/시트 일괄 업로드</span>
         </button>
-        <button id="toggle-grid-btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
+        <button id="export-json-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1">
+          <span>📤 커리큘럼 복사</span>
+        </button>
+        <button id="toggle-grid-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
           <span>격자: <b id="grid-status-label">켜짐</b></span>
         </button>
-        <button id="toggle-outline-btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
+        <button id="toggle-outline-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
           <span>윤곽선: <b id="outline-status-label">켜짐</b></span>
         </button>
       </div>
@@ -268,18 +273,71 @@
         <!-- 3. 연구자 설계 팁 -->
         <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
           <div class="font-bold text-slate-800 flex items-center justify-between">
-            <span class="flex items-center gap-1">📚 단원 관리 & 브라우저 자동 저장</span>
+            <span class="flex items-center gap-1">📊 엑셀 & 스프레드시트 일괄 연동</span>
             <button id="reset-default-btn" class="text-[10px] text-slate-400 hover:text-rose-600 underline">
               기본 단원으로 초기화
             </button>
           </div>
           <p class="leading-relaxed">
-            추가하거나 삭제한 단원은 브라우저(localStorage)에 자동 저장되어 유지됩니다. 상단의 <b>[📤 커리큘럼 복사]</b>를 누르면 전체 단원 데이터를 JSON 코드로 복사해 GitHub에 영구 반영할 수 있습니다.
+            엑셀 파일(`.xlsx`)이나 구글 시트에서 다운로드한 `.csv` 파일을 상단의 <b>[📊 엑셀/시트 일괄 업로드]</b> 버튼으로 끌어다 넣으면 모든 단원과 어휘가 자동으로 구축됩니다.
           </p>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- Spreadsheet Upload Modal -->
+  <div id="spreadsheet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📊</span>
+          <h3 class="text-base font-bold text-slate-900">엑셀 / 스프레드시트 일괄 업로드</h3>
+        </div>
+        <button id="close-spreadsheet-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      
+      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+        구글 스프레드시트나 엑셀에 정리된 어휘 표를 올리면 한 번에 여러 단원과 단어가 등록됩니다.
+      </p>
+
+      <!-- 1. Template Download Section -->
+      <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-100 mb-4 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold text-indigo-900 block">표 양식이 필요하신가요?</span>
+          <span class="text-[11px] text-indigo-600">미리 준비된 CSV/엑셀 예제 템플릿을 내려받아 단어만 채워보세요.</span>
+        </div>
+        <button id="download-template-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shrink-0 shadow-sm flex items-center gap-1">
+          <span>📥 양식 다운로드</span>
+        </button>
+      </div>
+
+      <!-- 2. File Drop Area -->
+      <div id="drop-zone" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50 hover:bg-indigo-50/30">
+        <span class="text-3xl block mb-2">📁</span>
+        <span class="text-xs font-bold text-slate-800 block">엑셀(.xlsx) 또는 CSV 파일을 여기로 드래그하세요</span>
+        <span class="text-[11px] text-slate-400 block mt-1">또는 아래 버튼을 눌러 파일 선택</span>
+        <input type="file" id="spreadsheet-file-input" accept=".xlsx, .xls, .csv" class="hidden" />
+        <button type="button" id="browse-file-btn" class="mt-3 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl shadow-xs transition">
+          내 컴퓨터에서 파일 선택
+        </button>
+      </div>
+
+      <!-- Column Mapping Guide -->
+      <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
+        <span class="font-bold text-slate-700 block">💡 엑셀 열(Column) 이름 가이드:</span>
+        <p>• <b>단원명</b> (예: 제4과: 식당과 주문) / <b>단원설명</b></p>
+        <p>• <b>단어</b> (예: 米饭) / <b>병음</b> (mǐ fàn) / <b>한국어뜻</b> (밥)</p>
+        <p>• <b>예문</b> (중국어 회화) / <b>예문번역</b> / <b>문법팁</b></p>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button id="cancel-spreadsheet-modal-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Add Unit Modal -->
   <div id="add-unit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -685,6 +743,7 @@
     const sentenceKo = document.getElementById('sentence-ko');
     const sentenceTip = document.getElementById('sentence-tip');
 
+    const spreadsheetModal = document.getElementById('spreadsheet-modal');
     const addUnitModal = document.getElementById('add-unit-modal');
     const addWordModal = document.getElementById('add-word-modal');
     const exportModal = document.getElementById('export-modal');
@@ -1122,6 +1181,164 @@
       renderWordPills();
       selectWord(newWordObj);
       showToast(`'${word}' 단어가 추가되었습니다!`, '✨');
+    });
+
+    // Spreadsheet Upload & Parsing Logic
+    document.getElementById('open-spreadsheet-modal-btn').addEventListener('click', () => {
+      spreadsheetModal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-spreadsheet-modal-btn').addEventListener('click', () => {
+      spreadsheetModal.classList.add('hidden');
+    });
+
+    document.getElementById('cancel-spreadsheet-modal-btn').addEventListener('click', () => {
+      spreadsheetModal.classList.add('hidden');
+    });
+
+    // File Browse / Drop handlers
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('spreadsheet-file-input');
+    const browseFileBtn = document.getElementById('browse-file-btn');
+
+    browseFileBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    dropZone.addEventListener('click', (e) => {
+      if (e.target !== browseFileBtn) {
+        fileInput.click();
+      }
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleSpreadsheetFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        handleSpreadsheetFile(e.target.files[0]);
+      }
+    });
+
+    // Process Spreadsheet File (Excel .xlsx or CSV)
+    function handleSpreadsheetFile(file) {
+      const fileName = file.name;
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+
+          if (!rows || rows.length === 0) {
+            showToast('파일에 데이터 행이 비어 있습니다.', '⚠️');
+            return;
+          }
+
+          parseSpreadsheetRows(rows);
+          spreadsheetModal.classList.add('hidden');
+        } catch (err) {
+          console.error(err);
+          showToast('엑셀 파일을 읽는 중 오류가 발생했습니다.', '⚠️');
+        }
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    // Parse extracted JSON rows into CURRICULUM structure
+    function parseSpreadsheetRows(rows) {
+      const unitMap = new Map();
+
+      rows.forEach((r, idx) => {
+        // Flexible key lookups for user convenience
+        const unitName = (r['단원명'] || r['단원'] || r['과'] || r['unit'] || r['Unit'] || `제${idx + 1}과`).toString().trim();
+        const unitDesc = (r['단원설명'] || r['설명'] || r['desc'] || `${unitName} 어휘 학습`).toString().trim();
+
+        const word = (r['단어'] || r['한자'] || r['word'] || r['Word'] || '').toString().trim();
+        const pinyin = (r['병음'] || r['pinyin'] || r['Pinyin'] || word).toString().trim();
+        const meaning = (r['한국어뜻'] || r['뜻'] || r['meaning'] || r['의미'] || '').toString().trim();
+        const pos = (r['품사'] || r['pos'] || '어휘').toString().trim();
+        const zh = (r['예문'] || r['중국어예문'] || r['sentenceZh'] || `${word}。`).toString().trim();
+        const py = (r['예문병음'] || r['sentencePy'] || pinyin).toString().trim();
+        const ko = (r['예문번역'] || r['예문해석'] || r['sentenceKo'] || meaning).toString().trim();
+        const tip = (r['문법팁'] || r['팁'] || r['sentenceTip'] || `${word}의 예문입니다.`).toString().trim();
+
+        if (!word) return; // skip blank words
+
+        if (!unitMap.has(unitName)) {
+          unitMap.set(unitName, {
+            unitId: `unit-${Date.now()}-${unitMap.size}`,
+            unitName: unitName,
+            unitDesc: unitDesc,
+            words: []
+          });
+        }
+
+        unitMap.get(unitName).words.push({
+          word: word,
+          pinyin: pinyin,
+          meaning: meaning || '뜻 미기입',
+          pos: pos,
+          level: '시트 업로드',
+          sentenceZh: zh,
+          sentencePy: py,
+          sentenceKo: ko,
+          sentenceTip: tip
+        });
+      });
+
+      if (unitMap.size === 0) {
+        showToast('인식 가능한 단어 열을 찾지 못했습니다. 양식을 확인해주세요.', '⚠️');
+        return;
+      }
+
+      // Convert map to array
+      const parsedUnits = Array.from(unitMap.values());
+      CURRICULUM = parsedUnits;
+      saveCurriculum();
+
+      currentUnitIndex = 0;
+      renderUnitTabs();
+      renderWordPills();
+      selectWord(CURRICULUM[0].words[0]);
+
+      let totalWordCount = 0;
+      parsedUnits.forEach(u => totalWordCount += u.words.length);
+      showToast(`총 ${parsedUnits.length}개 단원, ${totalWordCount}개 어휘가 등록되었습니다!`, '🎉');
+    }
+
+    // Download CSV template
+    document.getElementById('download-template-btn').addEventListener('click', () => {
+      const templateData = [
+        ['단원명', '단원설명', '단어', '병음', '한국어뜻', '품사', '예문', '예문병음', '예문번역', '문법팁'],
+        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '你好', 'nǐ hǎo', '안녕하세요', '인사말', '王老师，您好！', 'Wáng lǎoshī, nín hǎo !', '왕 선생님, 안녕하세요!', "호칭 뒤에 '你好'를 붙여 정중히 인사합니다."],
+        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '谢谢', 'xiè xie', '감사합니다', '인사말', '谢谢你的帮助。', 'xiè xie nǐ de bāng zhù .', '도와주셔서 감사합니다.', "대답은 '不客气'를 씁니다."],
+        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '米饭', 'mǐ fàn', '밥 / 쌀밥', '명사', '我想吃米饭。', 'wǒ xiǎng chī mǐ fàn .', '저는 밥을 먹고 싶습니다.', "동사 앞에 '想'을 붙여 소망을 나타냅니다."],
+        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '好吃', 'hǎo chī', '맛있다', '형용사', '饺子很好吃。', 'jiǎo zi hěn hǎo chī .', '만두가 매우 맛있습니다.', "음식 맛을 칭찬할 때 사용합니다."]
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(templateData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '중국어단어양식');
+      XLSX.writeFile(wb, '중국어_워크북_단어업로드양식.xlsx');
+      showToast('엑셀 양식 파일이 다운로드되었습니다.', '📥');
     });
 
     // Export JSON Modal Handlers

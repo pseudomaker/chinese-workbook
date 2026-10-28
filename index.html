@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>중국어 워크북 - 단어·구문·획순 쓰기</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <!-- Hanzi Writer CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+  <style>
+    /* Traditional Chinese Practice Grid (米字格) */
+    .mizige-grid {
+      background-color: #fffaf5;
+      background-image: 
+        linear-gradient(to right, transparent 49.5%, rgba(220, 38, 38, 0.25) 50%, transparent 50.5%),
+        linear-gradient(to bottom, transparent 49.5%, rgba(220, 38, 38, 0.25) 50%, transparent 50.5%),
+        linear-gradient(45deg, transparent 49.5%, rgba(220, 38, 38, 0.15) 50%, transparent 50.5%),
+        linear-gradient(-45deg, transparent 49.5%, rgba(220, 38, 38, 0.15) 50%, transparent 50.5%);
+      border: 3px solid #ef4444;
+      box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.3);
+    }
+    .mizige-grid.grid-off {
+      background-image: none;
+      background-color: #ffffff;
+      border: 2px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+  <!-- Top Navigation Bar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl">📖</span>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">중국어 대화형 워크북</h1>
+          <p class="text-xs text-slate-500">단어학습 · 구문학습 · 획순 글자쓰기 연계 시스템</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="toggle-grid-btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
+          <span>격자: <b id="grid-status-label">켜짐</b></span>
+        </button>
+        <button id="toggle-outline-btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
+          <span>윤곽선: <b id="outline-status-label">켜짐</b></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-5">
+    <!-- Category & Vocabulary Selector Bar -->
+    <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
+      <!-- Unit Tabs -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" id="unit-tabs">
+          <!-- Dynamically generated unit buttons -->
+        </div>
+
+        <!-- Custom Word / Character Input Form -->
+        <div class="flex items-center gap-1.5 self-end sm:self-auto">
+          <input 
+            type="text" 
+            id="custom-word-input" 
+            maxlength="6" 
+            placeholder="단어 직접 입력 (예: 咖啡)" 
+            class="w-40 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
+          />
+          <button 
+            id="load-custom-word-btn" 
+            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition shrink-0"
+          >
+            단어 불러오기
+          </button>
+        </div>
+      </div>
+
+      <!-- Word Pills in Selected Unit -->
+      <div class="mt-3">
+        <div class="text-xs text-slate-500 font-medium mb-2 flex items-center justify-between">
+          <span>선택할 수 있는 어휘 목록:</span>
+          <span id="current-unit-desc" class="text-indigo-600 font-semibold"></span>
+        </div>
+        <div id="word-pills-container" class="flex flex-wrap gap-2">
+          <!-- Dynamically generated word pills -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Section: Two Columns -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+      <!-- Left Column: Character Writing Canvas -->
+      <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col items-center">
+        <!-- Word Progress & Character Sub-tabs -->
+        <div class="w-full flex flex-col gap-2 mb-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
+              <span>✍️ 글자 쓰기 연습</span>
+              <span id="writing-target-word" class="text-indigo-600 font-serif text-sm">你好</span>
+            </span>
+            <span id="word-char-progress" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              글자 1 / 2
+            </span>
+          </div>
+
+          <!-- Character Selector Pills for Multi-character words -->
+          <div id="char-steps-container" class="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl">
+            <!-- Dynamically generated character step pills -->
+          </div>
+        </div>
+
+        <!-- Mode & Stroke Count Status -->
+        <div class="w-full flex items-center justify-between px-1 mb-2">
+          <span id="mode-badge" class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">
+            ✍️ 직접 쓰기 퀴즈
+          </span>
+          <span id="stroke-counter" class="text-xs text-slate-500 font-medium">
+            획순: 계산 중...
+          </span>
+        </div>
+
+        <!-- Hanzi Writer Container (with 米字格) -->
+        <div class="relative p-1">
+          <div id="mizige-box" class="mizige-grid rounded-2xl flex items-center justify-center relative cursor-crosshair overflow-hidden shadow-inner" style="width: 270px; height: 270px;">
+            <div id="character-target-div" class="w-full h-full flex items-center justify-center"></div>
+          </div>
+        </div>
+
+        <!-- Feedback & Instruction Box -->
+        <div id="status-box" class="mt-3 w-full py-2.5 px-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs font-medium text-slate-600 transition-all duration-200 min-h-[42px] flex items-center justify-center">
+          격자 안에서 첫 번째 획을 순서대로 그어보세요.
+        </div>
+
+        <!-- Action Control Buttons -->
+        <div class="grid grid-cols-3 gap-2 w-full mt-3">
+          <button id="animate-btn" class="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 border border-indigo-100">
+            <span>▶️ 획순 시연</span>
+            <span class="text-[10px] text-indigo-500 font-normal">애니메이션 보기</span>
+          </button>
+          <button id="restart-quiz-btn" class="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 shadow-sm">
+            <span>✍️ 다시 쓰기</span>
+            <span class="text-[10px] text-blue-200 font-normal">퀴즈 처음부터</span>
+          </button>
+          <button id="hint-btn" class="px-3 py-2 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 border border-amber-200">
+            <span>💡 힌트 보기</span>
+            <span class="text-[10px] text-amber-600 font-normal">다음 획 하이라이트</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: 단어 학습 & 구문 학습 카드 -->
+      <div class="lg:col-span-5 flex flex-col gap-4">
+        <!-- 1. 단어 학습 카드 (Vocabulary Card) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span id="word-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  HSK 1급 어휘
+                </span>
+                <span id="word-pos" class="text-[10px] font-medium text-slate-500">
+                  인사말
+                </span>
+              </div>
+              <div class="flex items-baseline gap-3 mt-2">
+                <span id="vocab-word" class="text-3xl font-extrabold text-slate-900 font-serif">你好</span>
+                <span id="vocab-pinyin" class="text-lg font-bold text-indigo-600">nǐ hǎo</span>
+              </div>
+            </div>
+            <button id="speak-word-btn" class="p-2.5 rounded-full bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-200 text-slate-700" title="단어 표준 발음 듣기">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
+            <div class="flex justify-between py-1">
+              <span class="text-slate-500 font-medium">한국어 뜻</span>
+              <span id="vocab-meaning" class="font-bold text-slate-800 text-sm">안녕하세요</span>
+            </div>
+            <div class="flex justify-between py-1">
+              <span class="text-slate-500 font-medium">현재 연습 글자</span>
+              <span id="current-char-info" class="font-bold text-indigo-600">你 (7획)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 구문 학습 카드 (Grammar & Sentence Card) -->
+        <div class="bg-indigo-50/70 rounded-2xl p-5 border border-indigo-100 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
+              <span>💬 연계 구문 학습 (회화 예문)</span>
+            </span>
+            <button id="speak-sentence-btn" class="p-1.5 rounded-lg bg-white/80 hover:bg-white text-indigo-600 transition border border-indigo-200 text-xs font-medium flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+              </svg>
+              <span>문장 듣기</span>
+            </button>
+          </div>
+
+          <div class="space-y-1.5 mt-2 bg-white/70 p-3 rounded-xl border border-indigo-100/50">
+            <p id="sentence-zh" class="text-base font-bold text-slate-900 font-serif">王老师，您好！</p>
+            <p id="sentence-py" class="text-xs font-medium text-indigo-600">Wáng lǎoshī, nín hǎo !</p>
+            <p id="sentence-ko" class="text-xs font-semibold text-slate-700 mt-1">왕 선생님, 안녕하세요!</p>
+          </div>
+
+          <!-- Grammar point note -->
+          <div class="mt-3 text-[11px] text-indigo-800 leading-relaxed bg-white/40 p-2.5 rounded-lg border border-indigo-100/40">
+            <span class="font-bold text-indigo-900">💡 문법 포인트:</span>
+            <span id="sentence-tip" class="ml-1 text-slate-700">상대방의 직함이나 이름 뒤에 '你好'를 붙여 정중하게 인사합니다.</span>
+          </div>
+        </div>
+
+        <!-- 3. 연구자 설계 팁 -->
+        <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
+          <div class="font-bold text-slate-800 flex items-center gap-1">
+            <span>📚 연구자 워크북 구성 원리</span>
+          </div>
+          <p class="leading-relaxed">
+            어휘(`단어`)를 선택하면 단어 구성 글자들이 분해되어 <b>단어 의미 파악 → 연계 구문 학습 → 획순에 맞춘 글자 쓰기</b>로 자연스럽게 이어지도록 설계되었습니다.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Success Toast Modal -->
+  <div id="success-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl border border-slate-100 transform transition-all scale-95 opacity-0 duration-200" id="modal-card">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+        🎉
+      </div>
+      <h3 class="text-lg font-bold text-slate-900" id="modal-title">글자 완성!</h3>
+      <p id="modal-stats" class="text-xs text-slate-500 mt-1">획순에 맞춰 글자를 바르게 완성했습니다.</p>
+      
+      <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-around text-xs">
+        <div>
+          <span class="block text-slate-400 text-[10px]">완성 글자</span>
+          <span id="modal-char" class="text-2xl font-bold font-serif text-slate-800">你</span>
+        </div>
+        <div>
+          <span class="block text-slate-400 text-[10px]">틀린 횟수</span>
+          <span id="modal-mistakes" class="text-lg font-bold text-indigo-600">0회</span>
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-2">
+        <button id="modal-retry-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          다시 연습
+        </button>
+        <button id="modal-next-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
+          다음 글자 ▶
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Structured Curriculum Data: Units -> Words -> Characters + Sentences
+    const CURRICULUM = [
+      {
+        unitId: 'unit-1',
+        unitName: '제1과: 만남과 인사',
+        unitDesc: '기본 인사말과 호칭 어휘',
+        words: [
+          {
+            word: '你好',
+            pinyin: 'nǐ hǎo',
+            meaning: '안녕하세요',
+            pos: '인사말 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '王老师，您好！',
+            sentencePy: 'Wáng lǎoshī, nín hǎo !',
+            sentenceKo: '왕 선생님, 안녕하세요!',
+            sentenceTip: "상대방의 호칭(이름/직함) 뒤에 '你好'를 붙여 인사합니다. 존칭은 '您好'입니다."
+          },
+          {
+            word: '谢谢',
+            pinyin: 'xiè xie',
+            meaning: '고맙습니다 / 감사합니다',
+            pos: '인사말 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '谢谢你的帮助。',
+            sentencePy: 'xiè xie nǐ de bāng zhù .',
+            sentenceKo: '도와주셔서 감사합니다.',
+            sentenceTip: "감사를 표할 때 사용하며, 대답으로는 '不用谢(천만에요)' 또는 '不客气'를 씁니다."
+          },
+          {
+            word: '再见',
+            pinyin: 'zài jiàn',
+            meaning: '안녕히 가세요 / 또 만나요',
+            pos: '인사말 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '明天见，再见！',
+            sentencePy: 'míng tiān jiàn , zài jiàn !',
+            sentenceKo: '내일 봐요, 안녕히 가세요!',
+            sentenceTip: "'再(다시)'와 '见(보다)'가 합쳐져 '다시 만나자'라는 뜻의 작별 인사입니다."
+          },
+          {
+            word: '高兴',
+            pinyin: 'gāo xìng',
+            meaning: '기쁘다 / 즐겁다',
+            pos: '형용사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '认识你很高兴。',
+            sentencePy: 'rèn shi nǐ hěn gāo xìng .',
+            sentenceKo: '당신을 알게 되어 매우 기쁩니다.',
+            sentenceTip: "처음 만난 사람에게 호감을 표할 때 쓰는 대표적인 정형 구문입니다."
+          }
+        ]
+      },
+      {
+        unitId: 'unit-2',
+        unitName: '제2과: 학교와 배움',
+        unitDesc: '학교 생활과 학습 관련 필수 어휘',
+        words: [
+          {
+            word: '学习',
+            pinyin: 'xué xí',
+            meaning: '공부하다 / 배우다',
+            pos: '동사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '我们在学校学习中文。',
+            sentencePy: 'wǒ men zài xué xiào xué xí zhōng wén .',
+            sentenceKo: '우리는 학교에서 중국어를 배웁니다.',
+            sentenceTip: "'在 + 장소 + 동사' 어순으로 '~에서 ~을 하다' 동작의 장소를 나타냅니다."
+          },
+          {
+            word: '老师',
+            pinyin: 'lǎo shī',
+            meaning: '선생님',
+            pos: '명사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '他是我们的中文老师。',
+            sentencePy: 'tā shì wǒ men de zhōng wén lǎo shī .',
+            sentenceKo: '그는 우리의 중국어 선생님입니다.',
+            sentenceTip: "중국어에서는 성(姓) 뒤에 老师를 붙여 '张老师(장 선생님)'처럼 부릅니다."
+          },
+          {
+            word: '中国',
+            pinyin: 'zhōng guó',
+            meaning: '중국',
+            pos: '고유명사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '我想去中国旅游。',
+            sentencePy: 'wǒ xiǎng qù zhōng guó lǚ yóu .',
+            sentenceKo: '저는 중국에 여행 가고 싶습니다.',
+            sentenceTip: "'想 + 동사'는 '~하고 싶다'는 소망이나 의향을 나타내는 조동사입니다."
+          },
+          {
+            word: '朋友',
+            pinyin: 'péng you',
+            meaning: '친구',
+            pos: '명사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '他们都是我的好朋友。',
+            sentencePy: 'tā men dōu shì wǒ de hǎo péng you .',
+            sentenceKo: '그들은 모두 나의 좋은 친구입니다.',
+            sentenceTip: "'都(모두)'는 복수 주어 뒤, 서술어 앞에 위치하는 부사입니다."
+          }
+        ]
+      },
+      {
+        unitId: 'unit-3',
+        unitName: '제3과: 일상과 취향',
+        unitDesc: '취향 표현과 일상 행동 어휘',
+        words: [
+          {
+            word: '喜欢',
+            pinyin: 'xǐ huan',
+            meaning: '좋아하다',
+            pos: '동사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '你喜欢喝茶吗？',
+            sentencePy: 'nǐ xǐ huan hē chá ma ?',
+            sentenceKo: '당신은 차 마시는 것을 좋아합니까?',
+            sentenceTip: "문장 끝에 의문조사 '吗'를 붙이면 일반 평서문이 '예/아니오' 의문문이 됩니다."
+          },
+          {
+            word: '喝水',
+            pinyin: 'hē shuǐ',
+            meaning: '물을 마시다',
+            pos: '동목구 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '请多喝水。',
+            sentencePy: 'qǐng duō hē shuǐ .',
+            sentenceKo: '물을 많이 마시세요.',
+            sentenceTip: "'多 + 동사'는 '많이 ~하다'라는 권유의 의미로 자주 쓰입니다."
+          },
+          {
+            word: '快乐',
+            pinyin: 'kuài lè',
+            meaning: '즐겁다 / 행복하다',
+            pos: '형용사 (HSK 1급)',
+            level: '기초 1급',
+            sentenceZh: '祝你生日快乐！',
+            sentencePy: 'zhù nǐ shēng rì kuài lè !',
+            sentenceKo: '생일 축하합니다!',
+            sentenceTip: "'祝 + 대상 + 축복내용' 형태로 명절이나 기념일 축하 인사를 건넵니다."
+          }
+        ]
+      }
+    ];
+
+    // State Variables
+    let currentUnitIndex = 0;
+    let currentWordObj = CURRICULUM[0].words[0];
+    let currentCharIndex = 0; // index of character in current word
+    let writer = null;
+    let isGridOn = true;
+    let isOutlineOn = true;
+    let totalStrokes = 0;
+
+    // DOM Elements
+    const unitTabs = document.getElementById('unit-tabs');
+    const wordPillsContainer = document.getElementById('word-pills-container');
+    const currentUnitDesc = document.getElementById('current-unit-desc');
+    const writingTargetWord = document.getElementById('writing-target-word');
+    const wordCharProgress = document.getElementById('word-char-progress');
+    const charStepsContainer = document.getElementById('char-steps-container');
+
+    const targetDiv = document.getElementById('character-target-div');
+    const mizigeBox = document.getElementById('mizige-box');
+    const statusBox = document.getElementById('status-box');
+    const strokeCounter = document.getElementById('stroke-counter');
+    const modeBadge = document.getElementById('mode-badge');
+
+    const vocabWord = document.getElementById('vocab-word');
+    const vocabPinyin = document.getElementById('vocab-pinyin');
+    const vocabMeaning = document.getElementById('vocab-meaning');
+    const wordBadge = document.getElementById('word-badge');
+    const wordPos = document.getElementById('word-pos');
+    const currentCharInfo = document.getElementById('current-char-info');
+
+    const sentenceZh = document.getElementById('sentence-zh');
+    const sentencePy = document.getElementById('sentence-py');
+    const sentenceKo = document.getElementById('sentence-ko');
+    const sentenceTip = document.getElementById('sentence-tip');
+
+    const successModal = document.getElementById('success-modal');
+    const modalCard = document.getElementById('modal-card');
+    const modalTitle = document.getElementById('modal-title');
+    const modalChar = document.getElementById('modal-char');
+    const modalMistakes = document.getElementById('modal-mistakes');
+    const modalStats = document.getElementById('modal-stats');
+    const modalNextBtn = document.getElementById('modal-next-btn');
+
+    // Speech synthesis function
+    function speakChinese(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.85;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Render Unit Tabs
+    function renderUnitTabs() {
+      unitTabs.innerHTML = '';
+      CURRICULUM.forEach((unit, idx) => {
+        const btn = document.createElement('button');
+        const isActive = idx === currentUnitIndex;
+        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
+          isActive 
+            ? 'bg-slate-900 text-white shadow-sm' 
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+        }`;
+        btn.textContent = unit.unitName;
+        btn.addEventListener('click', () => {
+          currentUnitIndex = idx;
+          renderUnitTabs();
+          renderWordPills();
+          selectWord(CURRICULUM[idx].words[0]);
+        });
+        unitTabs.appendChild(btn);
+      });
+    }
+
+    // Render Word Pills for Current Unit
+    function renderWordPills() {
+      const unit = CURRICULUM[currentUnitIndex];
+      currentUnitDesc.textContent = unit.unitDesc;
+      wordPillsContainer.innerHTML = '';
+
+      unit.words.forEach((item) => {
+        const btn = document.createElement('button');
+        const isSelected = item.word === currentWordObj.word;
+        btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+          isSelected 
+            ? 'bg-indigo-600 text-white shadow-sm' 
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+        }`;
+        btn.innerHTML = `<span class="text-sm font-serif font-bold">${item.word}</span> <span class="text-[11px] opacity-80">(${item.meaning})</span>`;
+        btn.addEventListener('click', () => {
+          selectWord(item);
+        });
+        wordPillsContainer.appendChild(btn);
+      });
+    }
+
+    // Select a Word
+    function selectWord(wordObj) {
+      currentWordObj = wordObj;
+      currentCharIndex = 0;
+      renderWordPills();
+      updateVocabAndSentenceCards(wordObj);
+      renderCharSteps();
+      loadActiveCharacter();
+    }
+
+    // Update Right-Hand Information Cards
+    function updateVocabAndSentenceCards(wordObj) {
+      vocabWord.textContent = wordObj.word;
+      vocabPinyin.textContent = wordObj.pinyin;
+      vocabMeaning.textContent = wordObj.meaning;
+      wordBadge.textContent = wordObj.level || '어휘';
+      wordPos.textContent = wordObj.pos || '';
+
+      sentenceZh.textContent = wordObj.sentenceZh;
+      sentencePy.textContent = wordObj.sentencePy;
+      sentenceKo.textContent = wordObj.sentenceKo;
+      sentenceTip.textContent = wordObj.sentenceTip || '선택한 어휘가 쓰인 대표 예문입니다.';
+    }
+
+    // Render Character Steps for the current word
+    function renderCharSteps() {
+      const chars = Array.from(currentWordObj.word);
+      charStepsContainer.innerHTML = '';
+      writingTargetWord.textContent = currentWordObj.word;
+      wordCharProgress.textContent = `글자 ${currentCharIndex + 1} / ${chars.length}`;
+
+      chars.forEach((c, idx) => {
+        const stepBtn = document.createElement('button');
+        const isActive = idx === currentCharIndex;
+        stepBtn.className = `flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
+          isActive 
+            ? 'bg-white text-indigo-700 shadow-sm border border-slate-200' 
+            : 'text-slate-500 hover:text-slate-800'
+        }`;
+        stepBtn.innerHTML = `<span>${idx + 1}단계:</span> <span class="font-serif text-sm">${c}</span>`;
+        stepBtn.addEventListener('click', () => {
+          currentCharIndex = idx;
+          renderCharSteps();
+          loadActiveCharacter();
+        });
+        charStepsContainer.appendChild(stepBtn);
+      });
+    }
+
+    function setStatus(text, type = 'normal') {
+      statusBox.textContent = text;
+      statusBox.className = 'mt-3 w-full py-2.5 px-3 rounded-xl border text-center text-xs font-medium transition-all duration-200 min-h-[42px] flex items-center justify-center ';
+      if (type === 'error') {
+        statusBox.className += 'bg-rose-50 border-rose-200 text-rose-700 animate-pulse';
+      } else if (type === 'success') {
+        statusBox.className += 'bg-emerald-50 border-emerald-200 text-emerald-700';
+      } else if (type === 'complete') {
+        statusBox.className += 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold';
+      } else {
+        statusBox.className += 'bg-slate-50 border-slate-200 text-slate-600';
+      }
+    }
+
+    // Load active character in HanziWriter
+    function loadActiveCharacter() {
+      const chars = Array.from(currentWordObj.word);
+      const charToDraw = chars[currentCharIndex] || chars[0];
+
+      targetDiv.innerHTML = '';
+      modeBadge.textContent = '✍️ 직접 쓰기 퀴즈';
+      modeBadge.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold';
+
+      currentCharInfo.textContent = `${charToDraw} (로딩 중...)`;
+
+      try {
+        writer = HanziWriter.create('character-target-div', charToDraw, {
+          width: 250,
+          height: 250,
+          padding: 15,
+          showOutline: isOutlineOn,
+          strokeAnimationSpeed: 1,
+          delayBetweenStrokes: 180,
+          strokeColor: '#1e293b',
+          outlineColor: '#cbd5e1',
+          drawingColor: '#2563eb',
+          drawingWidth: 22,
+          showCharacter: false,
+          onLoadCharDataSuccess: function(charData) {
+            totalStrokes = charData.strokes.length;
+            strokeCounter.textContent = `총 ${totalStrokes}획`;
+            currentCharInfo.textContent = `${charToDraw} (${totalStrokes}획)`;
+            startQuiz();
+          },
+          onLoadCharDataError: function() {
+            setStatus(`⚠️ '${charToDraw}'의 획순 데이터를 불러올 수 없습니다.`, 'error');
+            strokeCounter.textContent = '데이터 없음';
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        setStatus('Hanzi Writer 초기화 중 오류가 발생했습니다.', 'error');
+      }
+    }
+
+    function startQuiz() {
+      if (!writer) return;
+      modeBadge.textContent = '✍️ 직접 쓰기 퀴즈';
+      modeBadge.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold';
+      setStatus('격자 안에서 획순에 맞게 첫 번째 획을 그어보세요.');
+
+      writer.quiz({
+        showHintAfterMisses: 2,
+        onMistake: function(strokeData) {
+          setStatus(`⚠️ 획순이나 방향이 틀렸습니다! (틀린 횟수: ${strokeData.mistakesOnStroke}회)`, 'error');
+        },
+        onCorrectStroke: function(strokeData) {
+          const current = strokeData.strokeNum + 1;
+          const total = strokeData.totalStrokes || totalStrokes;
+          strokeCounter.textContent = `진행: ${current} / ${total}획`;
+          setStatus(`✨ 훌륭합니다! 올바른 획입니다. (${current}/${total}획 완료)`, 'success');
+        },
+        onComplete: function(summaryData) {
+          const chars = Array.from(currentWordObj.word);
+          const isLastChar = currentCharIndex >= chars.length - 1;
+          const currentChar = chars[currentCharIndex];
+
+          speakChinese(currentChar);
+
+          if (isLastChar) {
+            setStatus(`🎉 단어 '${currentWordObj.word}'의 모든 글자를 완벽하게 완성했습니다!`, 'complete');
+            setTimeout(() => {
+              speakChinese(currentWordObj.word);
+            }, 600);
+            openSuccessModal(summaryData.totalMistakes, true);
+          } else {
+            setStatus(`✨ '${currentChar}' 완성! 다음 글자로 넘어갑니다.`, 'complete');
+            openSuccessModal(summaryData.totalMistakes, false);
+          }
+        }
+      });
+    }
+
+    function openSuccessModal(mistakes, isWordCompleted) {
+      const chars = Array.from(currentWordObj.word);
+      const currentChar = chars[currentCharIndex];
+
+      modalChar.textContent = currentChar;
+      modalMistakes.textContent = `${mistakes}회`;
+
+      if (isWordCompleted) {
+        modalTitle.textContent = `단어 '${currentWordObj.word}' 완성! 🎉`;
+        modalStats.textContent = `단어 '${currentWordObj.word} (${currentWordObj.meaning})'의 모든 글자를 성공적으로 마쳤습니다!`;
+        modalNextBtn.textContent = '다음 어휘로 이동 ▶';
+      } else {
+        modalTitle.textContent = `'${currentChar}' 글자 완성! 👏`;
+        modalStats.textContent = `다음 글자 '${chars[currentCharIndex + 1]}' 쓰기로 이어집니다.`;
+        modalNextBtn.textContent = '다음 글자 쓰기 ▶';
+      }
+
+      successModal.classList.remove('hidden');
+      setTimeout(() => {
+        modalCard.classList.remove('scale-95', 'opacity-0');
+        modalCard.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+
+    function closeSuccessModal() {
+      modalCard.classList.remove('scale-100', 'opacity-100');
+      modalCard.classList.add('scale-95', 'opacity-0');
+      setTimeout(() => {
+        successModal.classList.add('hidden');
+      }, 200);
+    }
+
+    // Event Listeners
+    document.getElementById('animate-btn').addEventListener('click', () => {
+      if (!writer) return;
+      modeBadge.textContent = '▶️ 획순 시연 중';
+      modeBadge.className = 'px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-semibold';
+      setStatus('올바른 획순을 시연하고 있습니다. 눈으로 순서를 익혀보세요.');
+      writer.cancelQuiz();
+      writer.animateCharacter({
+        onComplete: function() {
+          setStatus('시연이 끝났습니다. [✍️ 다시 쓰기] 버튼을 눌러 직접 써보세요.');
+        }
+      });
+    });
+
+    document.getElementById('restart-quiz-btn').addEventListener('click', () => {
+      if (!writer) return;
+      writer.cancelQuiz();
+      startQuiz();
+    });
+
+    document.getElementById('hint-btn').addEventListener('click', () => {
+      if (!writer) return;
+      setStatus('💡 다음으로 써야 할 획을 하이라이트합니다.', 'normal');
+      writer.highlightStroke(0);
+    });
+
+    document.getElementById('toggle-grid-btn').addEventListener('click', () => {
+      isGridOn = !isGridOn;
+      document.getElementById('grid-status-label').textContent = isGridOn ? '켜짐' : '꺼짐';
+      if (isGridOn) {
+        mizigeBox.classList.remove('grid-off');
+      } else {
+        mizigeBox.classList.add('grid-off');
+      }
+    });
+
+    document.getElementById('toggle-outline-btn').addEventListener('click', () => {
+      isOutlineOn = !isOutlineOn;
+      document.getElementById('outline-status-label').textContent = isOutlineOn ? '켜짐' : '꺼짐';
+      loadActiveCharacter();
+    });
+
+    document.getElementById('speak-word-btn').addEventListener('click', () => {
+      speakChinese(currentWordObj.word);
+    });
+
+    document.getElementById('speak-sentence-btn').addEventListener('click', () => {
+      speakChinese(currentWordObj.sentenceZh);
+    });
+
+    // Custom Word Input Handler
+    document.getElementById('load-custom-word-btn').addEventListener('click', () => {
+      const input = document.getElementById('custom-word-input');
+      const val = input.value.trim();
+      if (val) {
+        // Create custom word object
+        const customObj = {
+          word: val,
+          pinyin: '직접 입력',
+          meaning: '사용자 지정 어휘',
+          pos: '사용자 단어',
+          level: '자유 입력',
+          sentenceZh: `${val}。`,
+          sentencePy: '',
+          sentenceKo: '직접 입력한 어휘 예문입니다.',
+          sentenceTip: '사용자가 직접 입력한 어휘의 글자별 획순 쓰기 모드입니다.'
+        };
+        selectWord(customObj);
+        input.value = '';
+      }
+    });
+
+    document.getElementById('custom-word-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('load-custom-word-btn').click();
+      }
+    });
+
+    document.getElementById('modal-retry-btn').addEventListener('click', () => {
+      closeSuccessModal();
+      startQuiz();
+    });
+
+    document.getElementById('modal-next-btn').addEventListener('click', () => {
+      closeSuccessModal();
+      const chars = Array.from(currentWordObj.word);
+      if (currentCharIndex < chars.length - 1) {
+        // Move to next character in word
+        currentCharIndex++;
+        renderCharSteps();
+        loadActiveCharacter();
+      } else {
+        // Move to next word in unit
+        const wordsInUnit = CURRICULUM[currentUnitIndex].words;
+        const currentWordIdx = wordsInUnit.findIndex(w => w.word === currentWordObj.word);
+        if (currentWordIdx !== -1 && currentWordIdx < wordsInUnit.length - 1) {
+          selectWord(wordsInUnit[currentWordIdx + 1]);
+        } else {
+          // Loop or first word
+          selectWord(wordsInUnit[0]);
+        }
+      }
+    });
+
+    // Initialize on page load
+    window.onload = function() {
+      renderUnitTabs();
+      renderWordPills();
+      selectWord(CURRICULUM[0].words[0]);
+    };
+  </script>
+</body>
+</html>

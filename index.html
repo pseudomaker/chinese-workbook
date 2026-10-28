@@ -28,6 +28,34 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+  <!-- Toast Notification Container -->
+  <div id="toast-banner" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none">
+    <div id="toast-content" class="px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2">
+      <span id="toast-icon">ℹ️</span>
+      <span id="toast-msg">알림 메시지</span>
+    </div>
+  </div>
+
+  <!-- In-page Confirm Modal -->
+  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl border border-slate-100">
+      <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
+        ⚠️
+      </div>
+      <h3 class="text-base font-bold text-slate-900" id="confirm-title">확인</h3>
+      <p id="confirm-msg" class="text-xs text-slate-600 mt-1.5 leading-relaxed">정말 진행하시겠습니까?</p>
+      
+      <div class="mt-5 flex gap-2">
+        <button id="confirm-cancel-btn" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          취소
+        </button>
+        <button id="confirm-ok-btn" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
+          확인
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Top Navigation Bar -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
     <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -39,6 +67,9 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button id="export-json-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1">
+          <span>📤 커리큘럼 복사/내보내기</span>
+        </button>
         <button id="toggle-grid-btn" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
           <span>격자: <b id="grid-status-label">켜짐</b></span>
         </button>
@@ -50,12 +81,22 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-5">
-    <!-- Category & Vocabulary Selector Bar -->
+    <!-- Category & Vocabulary Selector Bar with Unit Management -->
     <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-      <!-- Unit Tabs -->
+      <!-- Unit Tabs with Add/Delete Controls -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" id="unit-tabs">
-          <!-- Dynamically generated unit buttons -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" id="unit-tabs-wrapper">
+          <div class="flex items-center gap-1.5" id="unit-tabs">
+            <!-- Dynamically generated unit buttons -->
+          </div>
+          <!-- Unit Action Buttons: Add Unit -->
+          <button 
+            id="open-add-unit-modal-btn" 
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition shrink-0 flex items-center gap-1"
+            title="새 단원 추가하기"
+          >
+            <span>➕ 단원 추가</span>
+          </button>
         </div>
 
         <!-- Custom Word / Character Input Form -->
@@ -76,13 +117,23 @@
         </div>
       </div>
 
-      <!-- Word Pills in Selected Unit -->
+      <!-- Word Pills in Selected Unit + Word Addition -->
       <div class="mt-3">
-        <div class="text-xs text-slate-500 font-medium mb-2 flex items-center justify-between">
-          <span>선택할 수 있는 어휘 목록:</span>
-          <span id="current-unit-desc" class="text-indigo-600 font-semibold"></span>
+        <div class="text-xs text-slate-500 font-medium mb-2 flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span>선택할 수 있는 어휘 목록:</span>
+            <span id="current-unit-desc" class="text-indigo-600 font-semibold"></span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="open-add-word-modal-btn" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition">
+              ➕ 이 단원에 새 어휘 추가
+            </button>
+            <button id="delete-current-unit-btn" class="px-2 py-1 text-[11px] font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">
+              🗑️ 현재 단원 삭제
+            </button>
+          </div>
         </div>
-        <div id="word-pills-container" class="flex flex-wrap gap-2">
+        <div id="word-pills-container" class="flex flex-wrap gap-2 items-center">
           <!-- Dynamically generated word pills -->
         </div>
       </div>
@@ -195,7 +246,7 @@
             </span>
             <button id="speak-sentence-btn" class="p-1.5 rounded-lg bg-white/80 hover:bg-white text-indigo-600 transition border border-indigo-200 text-xs font-medium flex items-center gap-1">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
               </svg>
               <span>문장 듣기</span>
             </button>
@@ -216,16 +267,142 @@
 
         <!-- 3. 연구자 설계 팁 -->
         <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
-          <div class="font-bold text-slate-800 flex items-center gap-1">
-            <span>📚 연구자 워크북 구성 원리</span>
+          <div class="font-bold text-slate-800 flex items-center justify-between">
+            <span class="flex items-center gap-1">📚 단원 관리 & 브라우저 자동 저장</span>
+            <button id="reset-default-btn" class="text-[10px] text-slate-400 hover:text-rose-600 underline">
+              기본 단원으로 초기화
+            </button>
           </div>
           <p class="leading-relaxed">
-            어휘(`단어`)를 선택하면 단어 구성 글자들이 분해되어 <b>단어 의미 파악 → 연계 구문 학습 → 획순에 맞춘 글자 쓰기</b>로 자연스럽게 이어지도록 설계되었습니다.
+            추가하거나 삭제한 단원은 브라우저(localStorage)에 자동 저장되어 유지됩니다. 상단의 <b>[📤 커리큘럼 복사]</b>를 누르면 전체 단원 데이터를 JSON 코드로 복사해 GitHub에 영구 반영할 수 있습니다.
           </p>
         </div>
       </div>
     </section>
   </main>
+
+  <!-- Add Unit Modal -->
+  <div id="add-unit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-slate-900">➕ 새 단원 추가</h3>
+        <button id="close-unit-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+
+      <!-- Quick Preset Themes -->
+      <div class="mb-4 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
+        <span class="text-xs font-bold text-indigo-900 block mb-1.5">⚡ 클릭 시 추천 테마 자동 채우기:</span>
+        <div class="flex flex-wrap gap-1.5">
+          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제4과: 식당과 주문" data-desc="식사 주문 및 맛 표현" data-word="米饭" data-pinyin="mǐ fàn" data-mean="쌀밥 / 밥" data-zh="我想吃米饭。" data-py="wǒ xiǎng chī mǐ fàn ." data-ko="저는 밥을 먹고 싶습니다.">
+            🍜 식당과 주문
+          </button>
+          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제5과: 날씨와 계절" data-desc="오늘의 날씨 묘사 어휘" data-word="今天" data-pinyin="jīn tiān" data-mean="오늘" data-zh="今天天气很好。" data-py="jīn tiān tiān qì hěn hǎo ." data-ko="오늘 날씨가 매우 좋습니다.">
+            ⛅ 날씨와 계절
+          </button>
+          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제6과: 쇼핑과 가격" data-desc="물건 사기와 가격 묻기" data-word="多少" data-pinyin="duō shao" data-mean="얼마 / 몇" data-zh="这个多少钱？" data-py="zhè ge duō shao qián ?" data-ko="이것은 얼마입니까?">
+            🛍️ 쇼핑과 가격
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">단원 이름 (예: 제4과: 식당과 음식)</label>
+          <input type="text" id="new-unit-name" placeholder="제4과: 식당과 음식" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">단원 부제/설명 (예: 식사 주문과 음식 어휘)</label>
+          <input type="text" id="new-unit-desc" placeholder="식사 주문과 음식 관련 기본 어휘" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <span class="block font-semibold text-slate-700 mb-1">첫 번째 포함할 어휘 (선택):</span>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="new-unit-word" placeholder="단어 (예: 饺子)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+            <input type="text" id="new-unit-pinyin" placeholder="병음 (예: jiǎo zi)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          </div>
+          <input type="text" id="new-unit-mean" placeholder="한국어 뜻 (예: 만두)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          <input type="text" id="new-unit-zh" placeholder="중국어 예문 (예: 饺子很好吃。)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          <input type="text" id="new-unit-ko" placeholder="예문 한국어 번역 (예: 만두가 매우 맛있습니다.)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+        </div>
+      </div>
+
+      <div class="mt-5 flex gap-2">
+        <button id="cancel-unit-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          취소
+        </button>
+        <button id="submit-unit-btn" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
+          단원 생성하기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Word Modal -->
+  <div id="add-word-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-base font-bold text-slate-900">➕ 어휘 추가</h3>
+        <button id="close-word-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3"><b id="modal-target-unit-name" class="text-indigo-600"></b>에 새 단어를 추가합니다.</p>
+
+      <div class="space-y-2.5 text-xs">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">단어 (한자)</label>
+          <input type="text" id="add-word-input" placeholder="예: 苹果" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-serif text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">병음 (Pinyin)</label>
+            <input type="text" id="add-pinyin-input" placeholder="píng guǒ" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-700 mb-1">품사 / 등급</label>
+            <input type="text" id="add-pos-input" placeholder="명사 (HSK 1급)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          </div>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">한국어 뜻</label>
+          <input type="text" id="add-mean-input" placeholder="사과" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs" />
+        </div>
+        <div class="pt-2 border-t border-slate-100">
+          <label class="block font-semibold text-slate-700 mb-1">연계 예문 (중국어 / 번역)</label>
+          <input type="text" id="add-sentence-zh" placeholder="중국어 예문 (예: 这个苹果很甜。)" class="w-full mb-1.5 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-serif" />
+          <input type="text" id="add-sentence-py" placeholder="예문 병음 (예: zhè ge píng guǒ hěn tián .)" class="w-full mb-1.5 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+          <input type="text" id="add-sentence-ko" placeholder="예문 한국어 번역 (예: 이 사과는 매우 달다.)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+        </div>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button id="cancel-word-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          취소
+        </button>
+        <button id="submit-word-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
+          어휘 등록
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export JSON Modal -->
+  <div id="export-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-base font-bold text-slate-900">📤 커리큘럼 데이터 복사 / 내보내기</h3>
+        <button id="close-export-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+        현재 웹에서 추가·수정한 모든 단원과 어휘가 포함된 JSON 코드입니다. 아래 코드를 복사하여 GitHub `index.html`의 <code>DEFAULT_CURRICULUM</code> 배열에 붙여넣으면 모든 사용자에게 영구 배포됩니다.
+      </p>
+      <textarea id="export-json-textarea" readonly class="w-full h-48 p-3 text-[11px] font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"></textarea>
+      
+      <div class="mt-4 flex gap-2">
+        <button id="copy-json-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1">
+          <span>📋 JSON 코드 전체 복사하기</span>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Success Toast Modal -->
   <div id="success-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -259,8 +436,8 @@
   </div>
 
   <script>
-    // Structured Curriculum Data: Units -> Words -> Characters + Sentences
-    const CURRICULUM = [
+    // Default Curriculum Data Template
+    const DEFAULT_CURRICULUM = [
       {
         unitId: 'unit-1',
         unitName: '제1과: 만남과 인사',
@@ -405,10 +582,78 @@
       }
     ];
 
+    // In-page Toast Utility
+    let toastTimer = null;
+    function showToast(msg, icon = 'ℹ️') {
+      const banner = document.getElementById('toast-banner');
+      const msgEl = document.getElementById('toast-msg');
+      const iconEl = document.getElementById('toast-icon');
+      msgEl.textContent = msg;
+      iconEl.textContent = icon;
+
+      banner.classList.remove('translate-y-[-100px]', 'opacity-0');
+      banner.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        banner.classList.remove('translate-y-0', 'opacity-100');
+        banner.classList.add('translate-y-[-100px]', 'opacity-0');
+      }, 3000);
+    }
+
+    // In-page Confirm Utility
+    let confirmCallback = null;
+    function showConfirmModal(title, msg, onConfirm) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-msg').textContent = msg;
+      confirmCallback = onConfirm;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      confirmCallback = null;
+    });
+
+    document.getElementById('confirm-ok-btn').addEventListener('click', () => {
+      document.getElementById('confirm-modal').classList.add('hidden');
+      if (confirmCallback) {
+        confirmCallback();
+        confirmCallback = null;
+      }
+    });
+
+    // Load curriculum from localStorage or fallback
+    let CURRICULUM = [];
+    function loadStoredCurriculum() {
+      try {
+        const saved = localStorage.getItem('user_chinese_curriculum');
+        if (saved) {
+          CURRICULUM = JSON.parse(saved);
+          if (!Array.isArray(CURRICULUM) || CURRICULUM.length === 0) {
+            CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
+          }
+        } else {
+          CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
+        }
+      } catch (e) {
+        console.warn(e);
+        CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
+      }
+    }
+
+    function saveCurriculum() {
+      try {
+        localStorage.setItem('user_chinese_curriculum', JSON.stringify(CURRICULUM));
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
     // State Variables
     let currentUnitIndex = 0;
-    let currentWordObj = CURRICULUM[0].words[0];
-    let currentCharIndex = 0; // index of character in current word
+    let currentWordObj = null;
+    let currentCharIndex = 0;
     let writer = null;
     let isGridOn = true;
     let isOutlineOn = true;
@@ -440,6 +685,11 @@
     const sentenceKo = document.getElementById('sentence-ko');
     const sentenceTip = document.getElementById('sentence-tip');
 
+    const addUnitModal = document.getElementById('add-unit-modal');
+    const addWordModal = document.getElementById('add-word-modal');
+    const exportModal = document.getElementById('export-modal');
+    const exportJsonTextarea = document.getElementById('export-json-textarea');
+
     const successModal = document.getElementById('success-modal');
     const modalCard = document.getElementById('modal-card');
     const modalTitle = document.getElementById('modal-title');
@@ -465,10 +715,10 @@
       CURRICULUM.forEach((unit, idx) => {
         const btn = document.createElement('button');
         const isActive = idx === currentUnitIndex;
-        btn.className = `px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
+        btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
           isActive 
             ? 'bg-slate-900 text-white shadow-sm' 
-            : 'bg-slate-100 hover:bg-slate-200 text-slate-600'
+            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
         }`;
         btn.textContent = unit.unitName;
         btn.addEventListener('click', () => {
@@ -483,28 +733,70 @@
 
     // Render Word Pills for Current Unit
     function renderWordPills() {
+      if (!CURRICULUM[currentUnitIndex]) {
+        currentUnitIndex = 0;
+      }
       const unit = CURRICULUM[currentUnitIndex];
-      currentUnitDesc.textContent = unit.unitDesc;
+      currentUnitDesc.textContent = unit ? unit.unitDesc : '';
       wordPillsContainer.innerHTML = '';
 
-      unit.words.forEach((item) => {
-        const btn = document.createElement('button');
-        const isSelected = item.word === currentWordObj.word;
-        btn.className = `px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+      if (!unit || !unit.words || unit.words.length === 0) {
+        wordPillsContainer.innerHTML = '<span class="text-xs text-slate-400">등록된 어휘가 없습니다. [➕ 새 어휘 추가] 버튼을 눌러 추가하세요.</span>';
+        return;
+      }
+
+      unit.words.forEach((item, wIdx) => {
+        const pillGroup = document.createElement('div');
+        const isSelected = currentWordObj && item.word === currentWordObj.word;
+        pillGroup.className = `flex items-center rounded-xl transition ${
           isSelected 
             ? 'bg-indigo-600 text-white shadow-sm' 
             : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
         }`;
+
+        const btn = document.createElement('button');
+        btn.className = 'px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5';
         btn.innerHTML = `<span class="text-sm font-serif font-bold">${item.word}</span> <span class="text-[11px] opacity-80">(${item.meaning})</span>`;
         btn.addEventListener('click', () => {
           selectWord(item);
         });
-        wordPillsContainer.appendChild(btn);
+        pillGroup.appendChild(btn);
+
+        // Word delete button
+        const delBtn = document.createElement('button');
+        delBtn.className = `px-1.5 py-1.5 text-[10px] opacity-60 hover:opacity-100 transition rounded-r-xl ${isSelected ? 'text-white hover:bg-indigo-700' : 'text-slate-500 hover:text-rose-600'}`;
+        delBtn.innerHTML = '✕';
+        delBtn.title = `'${item.word}' 단어 삭제`;
+        delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteWord(wIdx);
+        });
+        pillGroup.appendChild(delBtn);
+
+        wordPillsContainer.appendChild(pillGroup);
       });
+    }
+
+    // Delete a word from current unit
+    function deleteWord(wIdx) {
+      const unit = CURRICULUM[currentUnitIndex];
+      if (unit && unit.words.length > 1) {
+        const targetWord = unit.words[wIdx].word;
+        showConfirmModal('단어 삭제', `'${targetWord}' 어휘를 단원에서 삭제하시겠습니까?`, () => {
+          unit.words.splice(wIdx, 1);
+          saveCurriculum();
+          renderWordPills();
+          selectWord(unit.words[0]);
+          showToast(`'${targetWord}' 단어가 삭제되었습니다.`, '🗑️');
+        });
+      } else {
+        showToast('단원에는 최소 1개 이상의 어휘가 유지되어야 합니다.', '⚠️');
+      }
     }
 
     // Select a Word
     function selectWord(wordObj) {
+      if (!wordObj) return;
       currentWordObj = wordObj;
       currentCharIndex = 0;
       renderWordPills();
@@ -529,6 +821,7 @@
 
     // Render Character Steps for the current word
     function renderCharSteps() {
+      if (!currentWordObj) return;
       const chars = Array.from(currentWordObj.word);
       charStepsContainer.innerHTML = '';
       writingTargetWord.textContent = currentWordObj.word;
@@ -568,6 +861,7 @@
 
     // Load active character in HanziWriter
     function loadActiveCharacter() {
+      if (!currentWordObj) return;
       const chars = Array.from(currentWordObj.word);
       const charToDraw = chars[currentCharIndex] || chars[0];
 
@@ -677,7 +971,198 @@
       }, 200);
     }
 
-    // Event Listeners
+    // Preset theme auto-fill helper
+    document.querySelectorAll('.preset-theme-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('new-unit-name').value = btn.dataset.name;
+        document.getElementById('new-unit-desc').value = btn.dataset.desc;
+        document.getElementById('new-unit-word').value = btn.dataset.word;
+        document.getElementById('new-unit-pinyin').value = btn.dataset.pinyin;
+        document.getElementById('new-unit-mean').value = btn.dataset.mean;
+        document.getElementById('new-unit-zh').value = btn.dataset.zh;
+        document.getElementById('new-unit-ko').value = btn.dataset.ko;
+        showToast(`'${btn.dataset.name}' 추천 프리셋이 입력되었습니다.`, '✨');
+      });
+    });
+
+    // Add Unit Modal Handlers
+    document.getElementById('open-add-unit-modal-btn').addEventListener('click', () => {
+      const nextNum = CURRICULUM.length + 1;
+      document.getElementById('new-unit-name').value = `제${nextNum}과: 새로운 주제`;
+      document.getElementById('new-unit-desc').value = '새로운 단원 설명';
+      document.getElementById('new-unit-word').value = '';
+      document.getElementById('new-unit-pinyin').value = '';
+      document.getElementById('new-unit-mean').value = '';
+      document.getElementById('new-unit-zh').value = '';
+      document.getElementById('new-unit-ko').value = '';
+      addUnitModal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-unit-modal-btn').addEventListener('click', () => {
+      addUnitModal.classList.add('hidden');
+    });
+    document.getElementById('cancel-unit-btn').addEventListener('click', () => {
+      addUnitModal.classList.add('hidden');
+    });
+
+    document.getElementById('submit-unit-btn').addEventListener('click', () => {
+      const name = document.getElementById('new-unit-name').value.trim();
+      const desc = document.getElementById('new-unit-desc').value.trim() || '단원 설명';
+      const word = document.getElementById('new-unit-word').value.trim() || '你好';
+      const pinyin = document.getElementById('new-unit-pinyin').value.trim() || 'nǐ hǎo';
+      const mean = document.getElementById('new-unit-mean').value.trim() || '안녕하세요';
+      const zh = document.getElementById('new-unit-zh').value.trim() || `${word}！`;
+      const ko = document.getElementById('new-unit-ko').value.trim() || `${mean}!`;
+
+      if (!name) {
+        showToast('단원 이름을 입력해주세요.', '⚠️');
+        return;
+      }
+
+      const newUnit = {
+        unitId: `unit-${Date.now()}`,
+        unitName: name,
+        unitDesc: desc,
+        words: [
+          {
+            word: word,
+            pinyin: pinyin,
+            meaning: mean,
+            pos: '어휘',
+            level: '기초',
+            sentenceZh: zh,
+            sentencePy: pinyin,
+            sentenceKo: ko,
+            sentenceTip: '새롭게 추가된 단원의 예문입니다.'
+          }
+        ]
+      };
+
+      CURRICULUM.push(newUnit);
+      saveCurriculum();
+      currentUnitIndex = CURRICULUM.length - 1;
+      addUnitModal.classList.add('hidden');
+      renderUnitTabs();
+      renderWordPills();
+      selectWord(newUnit.words[0]);
+      showToast(`'${name}' 단원이 성공적으로 추가되었습니다!`, '🎉');
+    });
+
+    // Delete Current Unit Handler
+    document.getElementById('delete-current-unit-btn').addEventListener('click', () => {
+      if (CURRICULUM.length <= 1) {
+        showToast('워크북에 최소 1개 이상의 단원이 있어야 합니다.', '⚠️');
+        return;
+      }
+      const unit = CURRICULUM[currentUnitIndex];
+      showConfirmModal('단원 삭제', `'${unit.unitName}' 단원을 정말 삭제하시겠습니까?`, () => {
+        const deletedName = unit.unitName;
+        CURRICULUM.splice(currentUnitIndex, 1);
+        if (currentUnitIndex >= CURRICULUM.length) {
+          currentUnitIndex = CURRICULUM.length - 1;
+        }
+        saveCurriculum();
+        renderUnitTabs();
+        renderWordPills();
+        selectWord(CURRICULUM[currentUnitIndex].words[0]);
+        showToast(`'${deletedName}' 단원이 삭제되었습니다.`, '🗑️');
+      });
+    });
+
+    // Add Word Modal Handlers
+    document.getElementById('open-add-word-modal-btn').addEventListener('click', () => {
+      const unit = CURRICULUM[currentUnitIndex];
+      document.getElementById('modal-target-unit-name').textContent = unit.unitName;
+      document.getElementById('add-word-input').value = '';
+      document.getElementById('add-pinyin-input').value = '';
+      document.getElementById('add-pos-input').value = '명사 (HSK 1급)';
+      document.getElementById('add-mean-input').value = '';
+      document.getElementById('add-sentence-zh').value = '';
+      document.getElementById('add-sentence-py').value = '';
+      document.getElementById('add-sentence-ko').value = '';
+      addWordModal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-word-modal-btn').addEventListener('click', () => {
+      addWordModal.classList.add('hidden');
+    });
+    document.getElementById('cancel-word-btn').addEventListener('click', () => {
+      addWordModal.classList.add('hidden');
+    });
+
+    document.getElementById('submit-word-btn').addEventListener('click', () => {
+      const word = document.getElementById('add-word-input').value.trim();
+      const pinyin = document.getElementById('add-pinyin-input').value.trim();
+      const pos = document.getElementById('add-pos-input').value.trim() || '어휘';
+      const mean = document.getElementById('add-mean-input').value.trim();
+      const zh = document.getElementById('add-sentence-zh').value.trim() || `${word}。`;
+      const py = document.getElementById('add-sentence-py').value.trim() || pinyin;
+      const ko = document.getElementById('add-sentence-ko').value.trim() || mean;
+
+      if (!word || !mean) {
+        showToast('단어와 한국어 뜻을 입력해주세요.', '⚠️');
+        return;
+      }
+
+      const newWordObj = {
+        word: word,
+        pinyin: pinyin || word,
+        meaning: mean,
+        pos: pos,
+        level: '신규 어휘',
+        sentenceZh: zh,
+        sentencePy: py,
+        sentenceKo: ko,
+        sentenceTip: `${word}의 예문 학습입니다.`
+      };
+
+      CURRICULUM[currentUnitIndex].words.push(newWordObj);
+      saveCurriculum();
+      addWordModal.classList.add('hidden');
+      renderWordPills();
+      selectWord(newWordObj);
+      showToast(`'${word}' 단어가 추가되었습니다!`, '✨');
+    });
+
+    // Export JSON Modal Handlers
+    document.getElementById('export-json-btn').addEventListener('click', () => {
+      exportJsonTextarea.value = JSON.stringify(CURRICULUM, null, 2);
+      exportModal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-export-modal-btn').addEventListener('click', () => {
+      exportModal.classList.add('hidden');
+    });
+
+    document.getElementById('copy-json-btn').addEventListener('click', () => {
+      exportJsonTextarea.select();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(exportJsonTextarea.value);
+        } else {
+          document.execCommand('copy');
+        }
+        showToast('커리큘럼 JSON 코드가 복사되었습니다!', '📋');
+      } catch (err) {
+        document.execCommand('copy');
+        showToast('커리큘럼 JSON 코드가 복사되었습니다!', '📋');
+      }
+    });
+
+    // Reset default curriculum
+    document.getElementById('reset-default-btn').addEventListener('click', () => {
+      showConfirmModal('기본값 초기화', '모든 추가/수정된 단원을 삭제하고 초기 3개 기본 단원으로 되돌리시겠습니까?', () => {
+        CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
+        saveCurriculum();
+        currentUnitIndex = 0;
+        renderUnitTabs();
+        renderWordPills();
+        selectWord(CURRICULUM[0].words[0]);
+        showToast('기본 단원으로 초기화되었습니다.', '🔄');
+      });
+    });
+
+    // Event Listeners for canvas controls
     document.getElementById('animate-btn').addEventListener('click', () => {
       if (!writer) return;
       modeBadge.textContent = '▶️ 획순 시연 중';
@@ -720,11 +1205,11 @@
     });
 
     document.getElementById('speak-word-btn').addEventListener('click', () => {
-      speakChinese(currentWordObj.word);
+      if (currentWordObj) speakChinese(currentWordObj.word);
     });
 
     document.getElementById('speak-sentence-btn').addEventListener('click', () => {
-      speakChinese(currentWordObj.sentenceZh);
+      if (currentWordObj) speakChinese(currentWordObj.sentenceZh);
     });
 
     // Custom Word Input Handler
@@ -732,7 +1217,6 @@
       const input = document.getElementById('custom-word-input');
       const val = input.value.trim();
       if (val) {
-        // Create custom word object
         const customObj = {
           word: val,
           pinyin: '직접 입력',
@@ -762,20 +1246,18 @@
 
     document.getElementById('modal-next-btn').addEventListener('click', () => {
       closeSuccessModal();
+      if (!currentWordObj) return;
       const chars = Array.from(currentWordObj.word);
       if (currentCharIndex < chars.length - 1) {
-        // Move to next character in word
         currentCharIndex++;
         renderCharSteps();
         loadActiveCharacter();
       } else {
-        // Move to next word in unit
         const wordsInUnit = CURRICULUM[currentUnitIndex].words;
         const currentWordIdx = wordsInUnit.findIndex(w => w.word === currentWordObj.word);
         if (currentWordIdx !== -1 && currentWordIdx < wordsInUnit.length - 1) {
           selectWord(wordsInUnit[currentWordIdx + 1]);
         } else {
-          // Loop or first word
           selectWord(wordsInUnit[0]);
         }
       }
@@ -783,6 +1265,7 @@
 
     // Initialize on page load
     window.onload = function() {
+      loadStoredCurriculum();
       renderUnitTabs();
       renderWordPills();
       selectWord(CURRICULUM[0].words[0]);

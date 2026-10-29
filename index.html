@@ -88,40 +88,23 @@
   <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-5">
     <!-- Category & Vocabulary Selector Bar with Unit Management -->
     <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-      <!-- Unit Tabs with Direct Add and Delete Buttons -->
+      <!-- 1st Row: Unit Tabs & Custom Word Search (Spacious, No Overlap) -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0" id="unit-tabs-wrapper">
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 flex-1 min-w-0 mr-2" id="unit-tabs-wrapper">
           <!-- Unit Pills with inline Delete [x] buttons -->
           <div class="flex items-center gap-1.5" id="unit-tabs">
             <!-- Dynamically generated unit buttons -->
           </div>
-          <!-- Unit Actions: Add Unit & Delete Selected Unit -->
-          <div class="flex items-center gap-1.5 shrink-0 pl-1 border-l border-slate-200">
-            <button 
-              id="open-add-unit-modal-btn" 
-              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1"
-              title="새 단원 추가하기"
-            >
-              <span>➕ 단원 추가</span>
-            </button>
-            <button 
-              id="delete-unit-top-btn" 
-              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1"
-              title="현재 선택된 단원 삭제"
-            >
-              <span>🗑️ 단원 삭제</span>
-            </button>
-          </div>
         </div>
 
         <!-- Custom Word / Character Input Form -->
-        <div class="flex items-center gap-1.5 self-end sm:self-auto">
+        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
           <input 
             type="text" 
             id="custom-word-input" 
             maxlength="6" 
             placeholder="단어 직접 입력 (예: 咖啡)" 
-            class="w-40 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
+            class="w-36 sm:w-40 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
           />
           <button 
             id="load-custom-word-btn" 
@@ -132,19 +115,35 @@
         </div>
       </div>
 
-      <!-- Word Pills in Selected Unit + Word Addition -->
+      <!-- 2nd Row: Unit Description & Unit/Word Management (Moved to Lower Level) -->
       <div class="mt-3">
-        <div class="text-xs text-slate-500 font-medium mb-2 flex items-center justify-between flex-wrap gap-2">
+        <div class="text-xs text-slate-500 font-medium mb-2.5 flex items-center justify-between flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <span>선택할 수 있는 어휘 목록:</span>
             <span id="current-unit-desc" class="text-indigo-600 font-semibold"></span>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button id="open-add-word-modal-btn" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition">
-              ➕ 이 단원에 새 어휘 추가
+          <!-- Unit Management Actions Moved to Lower Level -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button 
+              id="open-add-unit-modal-btn" 
+              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition flex items-center gap-1 shadow-xs"
+              title="새 단원 추가하기"
+            >
+              <span>➕ 단원 추가</span>
             </button>
-            <button id="delete-current-unit-btn" class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition">
-              🗑️ 현재 단원 삭제
+            <button 
+              id="delete-current-unit-btn" 
+              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center gap-1 shadow-xs"
+              title="현재 선택된 단원 삭제"
+            >
+              <span>🗑️ 현재 단원 삭제</span>
+            </button>
+            <button id="delete-unit-top-btn" class="hidden">🗑️ 단원 삭제</button>
+            <button 
+              id="open-add-word-modal-btn" 
+              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition flex items-center gap-1 shadow-xs"
+            >
+              <span>➕ 이 단원에 새 어휘 추가</span>
             </button>
           </div>
         </div>
@@ -253,13 +252,13 @@
           </div>
         </div>
 
-        <!-- 2. 구문 학습 카드 (Grammar & Sentence Card) -->
-        <div class="bg-indigo-50/70 rounded-2xl p-5 border border-indigo-100 shadow-sm">
-          <div class="flex items-center justify-between mb-2">
+        <!-- 2. 구문 학습 카드 (Grammar & Dialogue Conversation Card) -->
+        <div class="bg-indigo-50/70 rounded-2xl p-4 sm:p-5 border border-indigo-100 shadow-sm flex flex-col gap-2.5">
+          <div class="flex items-center justify-between mb-0.5">
             <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-              <span>💬 연계 구문 학습 (회화 예문)</span>
+              <span>💬 연계 회화 학습 (A/B 대화 예문)</span>
             </span>
-            <button id="speak-sentence-btn" class="p-1.5 rounded-lg bg-white/80 hover:bg-white text-indigo-600 transition border border-indigo-200 text-xs font-medium flex items-center gap-1">
+            <button id="speak-sentence-btn" class="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-indigo-600 transition border border-indigo-200 text-xs font-semibold flex items-center gap-1 shadow-xs">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
               </svg>
@@ -267,15 +266,38 @@
             </button>
           </div>
 
-          <div class="space-y-1.5 mt-2 bg-white/70 p-3 rounded-xl border border-indigo-100/50">
-            <p id="sentence-zh" class="text-base font-bold text-slate-900 font-serif">王老师，您好！</p>
-            <p id="sentence-py" class="text-xs font-medium text-indigo-600">Wáng lǎoshī, nín hǎo !</p>
-            <p id="sentence-ko" class="text-xs font-semibold text-slate-700 mt-1">왕 선생님, 안녕하세요!</p>
+          <!-- Dialogue Bubbles Container -->
+          <div class="space-y-2.5" id="dialogue-container">
+            <!-- Speaker A Bubble -->
+            <div class="p-3 rounded-2xl bg-white border border-indigo-100/90 shadow-xs flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">A</span>
+              <div class="flex-1 min-w-0">
+                <p id="sentence-zh" class="text-sm sm:text-base font-bold text-slate-900 font-serif leading-snug">王老师，您好！</p>
+                <p id="sentence-py" class="text-xs font-medium text-indigo-600 mt-0.5">Wáng lǎoshī, nín hǎo !</p>
+                <p id="sentence-ko" class="text-xs text-slate-600 mt-1">왕 선생님, 안녕하세요!</p>
+              </div>
+              <button id="speak-a-btn" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-50 transition shrink-0" title="A 발음 듣기">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+              </button>
+            </div>
+
+            <!-- Speaker B Bubble -->
+            <div id="dialogue-b-box" class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100/90 shadow-xs flex items-start gap-2.5">
+              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">B</span>
+              <div class="flex-1 min-w-0">
+                <p id="sentence-b-zh" class="text-sm sm:text-base font-bold text-slate-900 font-serif leading-snug">你好！今天学习怎么样？</p>
+                <p id="sentence-b-py" class="text-xs font-medium text-emerald-700 mt-0.5">Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?</p>
+                <p id="sentence-b-ko" class="text-xs text-slate-600 mt-1">안녕하세요! 오늘 공부는 어때요?</p>
+              </div>
+              <button id="speak-b-btn" class="p-1.5 text-slate-400 hover:text-emerald-700 rounded-lg hover:bg-white/50 transition shrink-0" title="B 발음 듣기">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
+              </button>
+            </div>
           </div>
 
           <!-- Grammar point note -->
-          <div class="mt-3 text-[11px] text-indigo-800 leading-relaxed bg-white/40 p-2.5 rounded-lg border border-indigo-100/40">
-            <span class="font-bold text-indigo-900">💡 문법 포인트:</span>
+          <div class="mt-0.5 text-[11px] text-indigo-900 leading-relaxed bg-white/60 p-2.5 rounded-xl border border-indigo-100/60">
+            <span class="font-bold text-indigo-900">💡 회화 & 문법 포인트:</span>
             <span id="sentence-tip" class="ml-1 text-slate-700">상대방의 직함이나 이름 뒤에 '你好'를 붙여 정중하게 인사합니다.</span>
           </div>
         </div>
@@ -433,11 +455,22 @@
           <label class="block font-semibold text-slate-700 mb-1">한국어 뜻</label>
           <input type="text" id="add-mean-input" placeholder="사과" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs" />
         </div>
-        <div class="pt-2 border-t border-slate-100">
-          <label class="block font-semibold text-slate-700 mb-1">연계 예문 (중국어 / 번역)</label>
-          <input type="text" id="add-sentence-zh" placeholder="중국어 예문 (예: 这个苹果很甜。)" class="w-full mb-1.5 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-serif" />
-          <input type="text" id="add-sentence-py" placeholder="예문 병음 (예: zhè ge píng guǒ hěn tián .)" class="w-full mb-1.5 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          <input type="text" id="add-sentence-ko" placeholder="예문 한국어 번역 (예: 이 사과는 매우 달다.)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
+        <div class="pt-2 border-t border-slate-100 space-y-1.5">
+          <label class="block font-semibold text-slate-700">연계 대화 예문 (A/B 대화문)</label>
+          <!-- Speaker A inputs -->
+          <div class="p-2 bg-indigo-50/50 rounded-lg border border-indigo-100">
+            <span class="text-[10px] font-bold text-indigo-700 block mb-1">🧑‍🏫 화자 A (질문/첫 문장)</span>
+            <input type="text" id="add-sentence-zh" placeholder="A 중국어 (예: 你想吃苹果吗？)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs font-serif" />
+            <input type="text" id="add-sentence-py" placeholder="A 병음 (예: nǐ xiǎng chī píng guǒ ma ?)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs" />
+            <input type="text" id="add-sentence-ko" placeholder="A 한국어 번역 (예: 사과 드시겠어요?)" class="w-full px-2 py-1 border border-slate-200 rounded text-xs" />
+          </div>
+          <!-- Speaker B inputs -->
+          <div class="p-2 bg-emerald-50/50 rounded-lg border border-emerald-100">
+            <span class="text-[10px] font-bold text-emerald-700 block mb-1">🙋‍♂️ 화자 B (응답/대답 문장 - 선택)</span>
+            <input type="text" id="add-sentence-b-zh" placeholder="B 중국어 (예: 好的，这个苹果很甜。)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs font-serif" />
+            <input type="text" id="add-sentence-b-py" placeholder="B 병음 (예: hǎo de , zhè ge píng guǒ hěn tián .)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs" />
+            <input type="text" id="add-sentence-b-ko" placeholder="B 한국어 번역 (예: 네, 이 사과 매우 다네요.)" class="w-full px-2 py-1 border border-slate-200 rounded text-xs" />
+          </div>
         </div>
       </div>
 
@@ -505,7 +538,7 @@
 
   <script>
     // Default Curriculum Data Template
-    const DEFAULT_CURRICULUM = [
+        const DEFAULT_CURRICULUM = [
       {
         unitId: 'unit-1',
         unitName: '제1과: 만남과 인사',
@@ -520,6 +553,9 @@
             sentenceZh: '王老师，您好！',
             sentencePy: 'Wáng lǎoshī, nín hǎo !',
             sentenceKo: '왕 선생님, 안녕하세요!',
+            sentenceBZh: '你好！今天学习怎么样？',
+            sentenceBPy: 'Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?',
+            sentenceBKo: '안녕하세요! 오늘 공부는 어때요?',
             sentenceTip: "상대방의 호칭(이름/직함) 뒤에 '你好'를 붙여 인사합니다. 존칭은 '您好'입니다."
           },
           {
@@ -531,6 +567,9 @@
             sentenceZh: '谢谢你的帮助。',
             sentencePy: 'xiè xie nǐ de bāng zhù .',
             sentenceKo: '도와주셔서 감사합니다.',
+            sentenceBZh: '不客气，这是我应该做的。',
+            sentenceBPy: 'bú kè qi , zhè shì wǒ yīng gāi zuò de .',
+            sentenceBKo: '천만에요, 당연히 해야 할 일인걸요.',
             sentenceTip: "감사를 표할 때 사용하며, 대답으로는 '不用谢(천만에요)' 또는 '不客气'를 씁니다."
           },
           {
@@ -542,47 +581,59 @@
             sentenceZh: '明天见，再见！',
             sentencePy: 'míng tiān jiàn , zài jiàn !',
             sentenceKo: '내일 봐요, 안녕히 가세요!',
-            sentenceTip: "'再(다시)'와 '见(보다)'가 합쳐져 '다시 만나자'라는 뜻의 작별 인사입니다."
+            sentenceBZh: '再见，路上小心！',
+            sentenceBPy: 'zài jiàn , lù shang xiǎo xīn !',
+            sentenceBKo: '잘 가요, 조심해서 가세요!',
+            sentenceTip: "'再(다시)'와 '见(만나다)'의 합성어로, 헤어질 때 건네는 표준 인사입니다."
           },
           {
             word: '高兴',
             pinyin: 'gāo xìng',
-            meaning: '기쁘다 / 즐겁다',
+            meaning: '기쁘다 / 반갑다',
             pos: '형용사 (HSK 1급)',
             level: '기초 1급',
             sentenceZh: '认识你很高兴。',
             sentencePy: 'rèn shi nǐ hěn gāo xìng .',
             sentenceKo: '당신을 알게 되어 매우 기쁩니다.',
-            sentenceTip: "처음 만난 사람에게 호감을 표할 때 쓰는 대표적인 정형 구문입니다."
+            sentenceBZh: '我也很高兴认识你！',
+            sentenceBPy: 'wǒ yě hěn gāo xìng rèn shi nǐ !',
+            sentenceBKo: '저도 만나 뵙게 되어 정말 반가워요!',
+            sentenceTip: "첫 대면에서 호감을 표할 때 쓰는 대표적인 정중한 관용 표현입니다."
           }
         ]
       },
       {
         unitId: 'unit-2',
         unitName: '제2과: 학교와 배움',
-        unitDesc: '학교 생활과 학습 관련 필수 어휘',
+        unitDesc: '학습 및 수업 관련 기초 표현',
         words: [
           {
             word: '学习',
             pinyin: 'xué xí',
-            meaning: '공부하다 / 배우다',
+            meaning: '배우다 / 공부하다',
             pos: '동사 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: '我们在学校学习中文。',
-            sentencePy: 'wǒ men zài xué xiào xué xí zhōng wén .',
-            sentenceKo: '우리는 학교에서 중국어를 배웁니다.',
-            sentenceTip: "'在 + 장소 + 동사' 어순으로 '~에서 ~을 하다' 동작의 장소를 나타냅니다."
+            sentenceZh: '你在哪儿学习汉语？',
+            sentencePy: 'nǐ zài nǎr xué xí hàn yǔ ?',
+            sentenceKo: '당신은 어디에서 중국어를 배우나요?',
+            sentenceBZh: '我在大学学习汉语。',
+            sentenceBPy: 'wǒ zài dà xué xué xí hàn yǔ .',
+            sentenceBKo: '저는 대학교에서 중국어를 공부해요.',
+            sentenceTip: "'学习(학습)'은 단독 동사로 쓰이거나 뒤에 학문 목적어를 동반합니다."
           },
           {
             word: '老师',
             pinyin: 'lǎo shī',
-            meaning: '선생님',
+            meaning: '선생님 / 교수님',
             pos: '명사 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: '他是我们的中文老师。',
-            sentencePy: 'tā shì wǒ men de zhōng wén lǎo shī .',
-            sentenceKo: '그는 우리의 중국어 선생님입니다.',
-            sentenceTip: "중국어에서는 성(姓) 뒤에 老师를 붙여 '张老师(장 선생님)'처럼 부릅니다."
+            sentenceZh: '张老师是中文老师吗？',
+            sentencePy: 'zhāng lǎo shī shì zhōng wén lǎo shī ma ?',
+            sentenceKo: '장 선생님은 중국어 선생님이신가요?',
+            sentenceBZh: '是的，她是我们的汉语老师。',
+            sentenceBPy: 'shì de , tā shì wǒ men de hàn yǔ lǎo shī .',
+            sentenceBKo: '네, 그녀는 우리 중국어 선생님이세요.',
+            sentenceTip: "중국어에서는 성(姓) 뒤에 직함 '老师'를 붙여 부릅니다 (예: 王老师)."
           },
           {
             word: '中国',
@@ -590,11 +641,13 @@
             meaning: '중국',
             pos: '고유명사 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: ' convict',
-            sentenceZh: '我想去中国旅游。',
-            sentencePy: 'wǒ xiǎng qù zhōng guó lǚ yóu .',
-            sentenceKo: '저는 중국에 여행 가고 싶습니다.',
-            sentenceTip: "'想 + 동사'는 '~하고 싶다'는 소망이나 의향을 나타내는 조동사입니다."
+            sentenceZh: '你去过中国北京吗？',
+            sentencePy: 'nǐ qù guo zhōng guó běi jīng ma ?',
+            sentenceKo: '당신은 중국 베이징에 가본 적이 있나요?',
+            sentenceBZh: '去过，中国有很多名胜古迹。',
+            sentenceBPy: 'qù guo , zhōng guó yǒu hěn duō míng shèng gǔ jì .',
+            sentenceBKo: '가봤어요, 중국에는 명승고적이 아주 많아요.',
+            sentenceTip: "동사 뒤에 경험을 나타내는 동태조사 '过'를 결합하는 구문입니다."
           },
           {
             word: '朋友',
@@ -602,28 +655,34 @@
             meaning: '친구',
             pos: '명사 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: '他们都是我的好朋友。',
-            sentencePy: 'tā men dōu shì wǒ de hǎo péng you .',
-            sentenceKo: '그들은 모두 나의 좋은 친구입니다.',
-            sentenceTip: "'都(모두)'는 복수 주어 뒤, 서술어 앞에 위치하는 부사입니다."
+            sentenceZh: '他是你的好朋友吗？',
+            sentencePy: 'tā shì nǐ de hǎo péng you ma ?',
+            sentenceKo: '그는 당신의 친한 친구인가요?',
+            sentenceBZh: '对，我们是从小一起长大的好朋友。',
+            sentenceBPy: 'duì , wǒ men shì cóng xiǎo yì qǐ zhǎng dà de hǎo péng you .',
+            sentenceBKo: '맞아요, 우리는 어릴 적부터 함께 자란 절친이에요.',
+            sentenceTip: "'好朋友'는 친한 친구를 의미하며, 소유격 '的'를 생략하기도 합니다."
           }
         ]
       },
       {
         unitId: 'unit-3',
         unitName: '제3과: 일상과 취향',
-        unitDesc: '취향 표현과 일상 행동 어휘',
+        unitDesc: '일상 감정과 기호 표현',
         words: [
           {
             word: '喜欢',
             pinyin: 'xǐ huan',
-            meaning: '좋아하다',
+            meaning: '좋아하다 / 마음에 들다',
             pos: '동사 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: '你喜欢喝茶吗？',
-            sentencePy: 'nǐ xǐ huan hē chá ma ?',
-            sentenceKo: '당신은 차 마시는 것을 좋아합니까?',
-            sentenceTip: "문장 끝에 의문조사 '吗'를 붙이면 일반 평서문이 '예/아니오' 의문문이 됩니다."
+            sentenceZh: '你喜欢吃中国菜吗？',
+            sentencePy: 'nǐ xǐ huan chī zhōng guó cài ma ?',
+            sentenceKo: '당신은 중국 음식 먹는 것을 좋아하나요?',
+            sentenceBZh: '我很喜欢，尤其是麻婆豆腐。',
+            sentenceBPy: 'wǒ hěn xǐ huan , yóu qí shì má pó dòu fu .',
+            sentenceBKo: '매우 좋아해요, 특히 마파두부를 좋아합니다.',
+            sentenceTip: "심리동사 '喜欢' 뒤에 동사구(吃中国菜)가 목적어로 올 수 있습니다."
           },
           {
             word: '喝水',
@@ -631,10 +690,13 @@
             meaning: '물을 마시다',
             pos: '동목구 (HSK 1급)',
             level: '기초 1급',
-            sentenceZh: '请多喝水。',
-            sentencePy: 'qǐng duō hē shuǐ .',
-            sentenceKo: '물을 많이 마시세요.',
-            sentenceTip: "'多 + 동사'는 '많이 ~하다'라는 권유의 의미로 자주 쓰입니다."
+            sentenceZh: '你渴了吗？喝水吧。',
+            sentencePy: 'nǐ kě le ma ? hē shuǐ ba .',
+            sentenceKo: '목마르세요? 물 좀 드세요.',
+            sentenceBZh: '好的，谢谢，正好有点渴。',
+            sentenceBPy: 'hǎo de , xiè xie , zhèng hǎo yǒu diǎn kě .',
+            sentenceBKo: '네, 고마워요, 마침 목이 좀 말랐어요.',
+            sentenceTip: "문장 끝의 어기조사 '吧'는 권유, 청유를 부드럽게 나타냅니다."
           },
           {
             word: '快乐',
@@ -644,8 +706,11 @@
             level: '기초 1급',
             sentenceZh: '祝你生日快乐！',
             sentencePy: 'zhù nǐ shēng rì kuài lè !',
-            sentenceKo: '생일 축하합니다!',
-            sentenceTip: "'祝 + 대상 + 축복내용' 형태로 명절이나 기념일 축하 인사를 건넵니다."
+            sentenceKo: '생일 축하해요!',
+            sentenceBZh: '谢谢！今天我真的很开心快乐。',
+            sentenceBPy: 'xiè xie ! jīn tiān wǒ zhēn de hěn kāi xīn kuài lè .',
+            sentenceBKo: '고마워요! 오늘 정말 즐겁고 기뻐요.',
+            sentenceTip: "축하 문구는 보통 '祝你 + [행사/명절] + 快乐' 공식을 사용합니다."
           }
         ]
       }
@@ -749,9 +814,13 @@
     const wordPos = document.getElementById('word-pos');
     const currentCharInfo = document.getElementById('current-char-info');
 
-    const sentenceZh = document.getElementById('sentence-zh');
+        const sentenceZh = document.getElementById('sentence-zh');
     const sentencePy = document.getElementById('sentence-py');
     const sentenceKo = document.getElementById('sentence-ko');
+    const sentenceBZh = document.getElementById('sentence-b-zh');
+    const sentenceBPy = document.getElementById('sentence-b-py');
+    const sentenceBKo = document.getElementById('sentence-b-ko');
+    const dialogueBBox = document.getElementById('dialogue-b-box');
     const sentenceTip = document.getElementById('sentence-tip');
 
     const spreadsheetModal = document.getElementById('spreadsheet-modal');
@@ -768,14 +837,26 @@
     const modalStats = document.getElementById('modal-stats');
     const modalNextBtn = document.getElementById('modal-next-btn');
 
-    // Speech synthesis function
-    function speakChinese(text) {
-      if ('speechSynthesis' in window) {
+        // Speech synthesis function
+    function speakChinese(text, onEndCallback) {
+      if (!('speechSynthesis' in window)) {
+        showToast('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.', '⚠️');
+        if (onEndCallback) onEndCallback();
+        return;
+      }
+      try {
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'zh-CN';
         utterance.rate = 0.85;
+        if (onEndCallback) {
+          utterance.onend = onEndCallback;
+          utterance.onerror = onEndCallback;
+        }
         window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn(e);
+        if (onEndCallback) onEndCallback();
       }
     }
 
@@ -916,7 +997,7 @@
       loadActiveCharacter();
     }
 
-    // Update Right-Hand Information Cards
+        // Update Right-Hand Information Cards
     function updateVocabAndSentenceCards(wordObj) {
       vocabWord.textContent = wordObj.word;
       vocabPinyin.textContent = wordObj.pinyin;
@@ -924,10 +1005,24 @@
       wordBadge.textContent = wordObj.level || '어휘';
       wordPos.textContent = wordObj.pos || '';
 
-      sentenceZh.textContent = wordObj.sentenceZh;
-      sentencePy.textContent = wordObj.sentencePy;
-      sentenceKo.textContent = wordObj.sentenceKo;
-      sentenceTip.textContent = wordObj.sentenceTip || '선택한 어휘가 쓰인 대표 예문입니다.';
+      sentenceZh.textContent = wordObj.sentenceZh || '';
+      sentencePy.textContent = wordObj.sentencePy || '';
+      sentenceKo.textContent = wordObj.sentenceKo || '';
+      sentenceTip.textContent = wordObj.sentenceTip || '선택한 어휘가 쓰인 대표 대화 예문입니다.';
+
+      if (dialogueBBox && sentenceBZh) {
+        if (wordObj.sentenceBZh && wordObj.sentenceBZh.trim()) {
+          dialogueBBox.classList.remove('hidden');
+          sentenceBZh.textContent = wordObj.sentenceBZh;
+          sentenceBPy.textContent = wordObj.sentenceBPy || '';
+          sentenceBKo.textContent = wordObj.sentenceBKo || '';
+        } else {
+          dialogueBBox.classList.add('hidden');
+          sentenceBZh.textContent = '';
+          sentenceBPy.textContent = '';
+          sentenceBKo.textContent = '';
+        }
+      }
     }
 
     // Render Character Steps for the current word
@@ -1168,16 +1263,22 @@
     });
 
     // Add Word Modal Handlers
-    document.getElementById('open-add-word-modal-btn').addEventListener('click', () => {
-      const unit = CURRICULUM[currentUnitIndex];
-      document.getElementById('modal-target-unit-name').textContent = unit.unitName;
+        document.getElementById('open-add-word-modal-btn').addEventListener('click', () => {
+      if (!CURRICULUM[currentUnitIndex]) return;
+      document.getElementById('modal-target-unit-name').textContent = CURRICULUM[currentUnitIndex].unitName;
       document.getElementById('add-word-input').value = '';
       document.getElementById('add-pinyin-input').value = '';
-      document.getElementById('add-pos-input').value = '명사 (HSK 1급)';
+      document.getElementById('add-pos-input').value = '';
       document.getElementById('add-mean-input').value = '';
       document.getElementById('add-sentence-zh').value = '';
       document.getElementById('add-sentence-py').value = '';
       document.getElementById('add-sentence-ko').value = '';
+      const bZhIn = document.getElementById('add-sentence-b-zh');
+      if (bZhIn) bZhIn.value = '';
+      const bPyIn = document.getElementById('add-sentence-b-py');
+      if (bPyIn) bPyIn.value = '';
+      const bKoIn = document.getElementById('add-sentence-b-ko');
+      if (bKoIn) bKoIn.value = '';
       addWordModal.classList.remove('hidden');
     });
 
@@ -1301,7 +1402,7 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // Parse extracted JSON rows into CURRICULUM structure
+        // Parse extracted JSON rows into CURRICULUM structure
     function parseSpreadsheetRows(rows) {
       const unitMap = new Map();
 
@@ -1313,10 +1414,16 @@
         const pinyin = (r['병음'] || r['pinyin'] || r['Pinyin'] || word).toString().trim();
         const meaning = (r['한국어뜻'] || r['뜻'] || r['meaning'] || r['의미'] || '').toString().trim();
         const pos = (r['품사'] || r['pos'] || '어휘').toString().trim();
-        const zh = (r['예문'] || r['중국어예문'] || r['sentenceZh'] || `${word}。`).toString().trim();
-        const py = (r['예문병음'] || r['sentencePy'] || pinyin).toString().trim();
-        const ko = (r['예문번역'] || r['예문해석'] || r['sentenceKo'] || meaning).toString().trim();
-        const tip = (r['문법팁'] || r['팁'] || r['sentenceTip'] || `${word}의 예문입니다.`).toString().trim();
+
+        const zh = (r['예문A'] || r['예문'] || r['중국어예문'] || r['sentenceZh'] || `${word}。`).toString().trim();
+        const py = (r['예문A병음'] || r['예문병음'] || r['sentencePy'] || pinyin).toString().trim();
+        const ko = (r['예문A번역'] || r['예문번역'] || r['예문해석'] || r['sentenceKo'] || meaning).toString().trim();
+
+        const bZh = (r['대화B'] || r['대화B중국어'] || r['응답문장'] || r['sentenceBZh'] || '').toString().trim();
+        const bPy = (r['대화B병음'] || r['응답병음'] || r['sentenceBPy'] || '').toString().trim();
+        const bKo = (r['대화B번역'] || r['대화B해석'] || r['응답번역'] || r['sentenceBKo'] || '').toString().trim();
+
+        const tip = (r['문법팁'] || r['팁'] || r['sentenceTip'] || `${word}의 대화 예문입니다.`).toString().trim();
 
         if (!word) return;
 
@@ -1338,6 +1445,9 @@
           sentenceZh: zh,
           sentencePy: py,
           sentenceKo: ko,
+          sentenceBZh: bZh,
+          sentenceBPy: bPy,
+          sentenceBKo: bKo,
           sentenceTip: tip
         });
       });
@@ -1361,16 +1471,15 @@
       showToast(`총 ${parsedUnits.length}개 단원, ${totalWordCount}개 어휘가 등록되었습니다!`, '🎉');
     }
 
-    // Download CSV template
+        // Download Excel template
     document.getElementById('download-template-btn').addEventListener('click', () => {
       const templateData = [
-        ['단원명', '단원설명', '단어', '병음', '한국어뜻', '품사', '예문', '예문병음', '예문번역', '문법팁'],
-        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '你好', 'nǐ hǎo', '안녕하세요', '인사말', '王老师，您好！', 'Wáng lǎoshī, nín hǎo !', '왕 선생님, 안녕하세요!', "호칭 뒤에 '你好'를 붙여 정중히 인사합니다."],
-        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '谢谢', 'xiè xie', '감사합니다', '인사말', '谢谢你的帮助。', 'xiè xie nǐ de bāng zhù .', '도와주셔서 감사합니다.', "대답은 '不客气'를 씁니다."],
-        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '米饭', 'mǐ fàn', '밥 / 쌀밥', '명사', '我想吃米饭。', 'wǒ xiǎng chī mǐ fàn .', '저는 밥을 먹고 싶습니다.', "동사 앞에 '想'을 붙여 소망을 나타냅니다."],
-        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '好吃', 'hǎo chī', '맛있다', '형용사', '饺子很好吃。', 'jiǎo zi hěn hǎo chī .', '만두가 매우 맛있습니다.', "음식 맛을 칭찬할 때 사용합니다."]
+        ['단원명', '단원설명', '단어', '병음', '한국어뜻', '품사', '예문A', '예문A병음', '예문A번역', '대화B', '대화B병음', '대화B번역', '문법팁'],
+        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '你好', 'nǐ hǎo', '안녕하세요', '인사말', '王老师，您好！', 'Wáng lǎoshī, nín hǎo !', '왕 선생님, 안녕하세요!', '你好！今天学习怎么样？', 'Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?', '안녕하세요! 오늘 공부는 어때요?', "호칭 뒤에 '你好'를 붙여 인사합니다."],
+        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '谢谢', 'xiè xie', '감사합니다', '인사말', '谢谢你的帮助。', 'xiè xie nǐ de bāng zhù .', '도와주셔서 감사합니다.', '不客气，这是我应该做的。', 'bú kè qi , zhè shì wǒ yīng gāi zuò de .', '천만에요, 당연히 해야 할 일인걸요.', "감사의 표현과 화답 대화입니다."],
+        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '米饭', 'mǐ fàn', '밥 / 쌀밥', '명사', '我想吃米饭。', 'wǒ xiǎng chī mǐ fàn .', '저는 밥을 먹고 싶습니다.', '好的，请稍等，马上为您上菜。', 'hǎo de , qǐng shāo děng , mǎ shàng wèi nǐ shàng cài .', '네, 잠시만 기다려주세요, 곧 준비해 드리겠습니다.', "동사 앞에 '想'을 붙여 소망을 나타냅니다."],
+        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '好吃', 'hǎo chī', '맛있다', '형용사', '饺子很好吃。', 'jiǎo zi hěn hǎo chī .', '만두가 매우 맛있습니다.', '喜欢就多吃点儿吧！', 'xǐ huan jiù duō chī diǎnr ba !', '마음에 드시면 많이 드세요!', "음식 맛을 칭찬할 때의 문답입니다."]
       ];
-
       const ws = XLSX.utils.aoa_to_sheet(templateData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, '중국어단어양식');
@@ -1458,13 +1567,44 @@
       loadActiveCharacter();
     });
 
-    document.getElementById('speak-word-btn').addEventListener('click', () => {
+        document.getElementById('speak-word-btn').addEventListener('click', () => {
       if (currentWordObj) speakChinese(currentWordObj.word);
     });
 
     document.getElementById('speak-sentence-btn').addEventListener('click', () => {
-      if (currentWordObj) speakChinese(currentWordObj.sentenceZh);
+      if (!currentWordObj || !currentWordObj.sentenceZh) return;
+      if (currentWordObj.sentenceBZh && currentWordObj.sentenceBZh.trim()) {
+        showToast('화자 A 발음 재생 중...', '🗣️');
+        speakChinese(currentWordObj.sentenceZh, () => {
+          setTimeout(() => {
+            showToast('화자 B 응답 재생 중...', '🗣️');
+            speakChinese(currentWordObj.sentenceBZh);
+          }, 700);
+        });
+      } else {
+        speakChinese(currentWordObj.sentenceZh);
+      }
     });
+
+    const speakABtn = document.getElementById('speak-a-btn');
+    if (speakABtn) {
+      speakABtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentWordObj && currentWordObj.sentenceZh) {
+          speakChinese(currentWordObj.sentenceZh);
+        }
+      });
+    }
+
+    const speakBBtn = document.getElementById('speak-b-btn');
+    if (speakBBtn) {
+      speakBBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentWordObj && currentWordObj.sentenceBZh) {
+          speakChinese(currentWordObj.sentenceBZh);
+        }
+      });
+    }
 
     // Custom Word Input Handler
     document.getElementById('load-custom-word-btn').addEventListener('click', () => {

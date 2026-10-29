@@ -69,6 +69,9 @@
         </div>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
+        <button id="open-sync-modal-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1 shadow-xs">
+          <span>🔄 구글 시트 실시간 연동</span>
+        </button>
         <button id="open-spreadsheet-modal-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1 shadow-sm">
           <span>📊 엑셀/시트 일괄 업로드</span>
         </button>
@@ -317,6 +320,79 @@
       </div>
     </section>
   </main>
+
+  <!-- Google Sheet Sync Modal -->
+  <div id="google-sheet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔄</span>
+          <h3 class="text-base font-bold text-slate-900">구글 스프레드시트 실시간 연동</h3>
+        </div>
+        <button id="close-google-sheet-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
+      </div>
+      
+      <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+        구글 스프레드시트 링크를 등록하면, 교수님이 시트에서 단어나 대화를 수정할 때마다 <b>깃허브 접속이나 코드 복사 없이</b> 학생들 화면에 즉시 자동 반영됩니다.
+      </p>
+
+      <!-- URL Input Box -->
+      <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-100 mb-4 space-y-2">
+        <label class="block text-xs font-bold text-emerald-950">구글 시트 CSV 링크 (또는 일반 시트 공유 링크)</label>
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="google-sheet-url-input" 
+            placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" 
+            class="flex-1 px-3 py-2 text-xs border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono"
+          />
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <span id="sync-status-indicator" class="text-[11px] text-emerald-700 font-medium">연동 상태: 미연동 (기본 단어장 사용 중)</span>
+          <div class="flex gap-1.5">
+            <button id="disconnect-sheet-btn" class="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 font-medium transition hidden">
+              연동 해제
+            </button>
+            <button id="save-and-sync-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1">
+              <span>동기화 실행</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Share link for students -->
+      <div id="share-link-box" class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-100 mb-4 hidden">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-bold text-indigo-950 flex items-center gap-1">
+            <span>🔗 학생 배포용 자동 연동 링크</span>
+          </span>
+          <button id="copy-share-url-btn" class="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-lg text-xs font-semibold transition shadow-xs">
+            링크 복사
+          </button>
+        </div>
+        <p class="text-[11px] text-indigo-700 leading-snug">이 주소를 학생들에게 카카오톡이나 LMS에 공유하면, 학생들은 설정 없이 접속 즉시 교수님의 구글 시트를 자동으로 읽어옵니다.</p>
+        <input type="text" id="share-url-display" readonly class="mt-2 w-full px-2.5 py-1 text-[11px] bg-white border border-indigo-200 rounded-lg text-slate-600 font-mono select-all" />
+      </div>
+
+      <!-- Step-by-Step Guide -->
+      <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-2">
+        <span class="font-bold text-slate-800 block text-xs">📌 1분 구글 시트 링크 생성 방법:</span>
+        <ol class="list-decimal list-inside space-y-1.5 text-[11px] leading-relaxed text-slate-600">
+          <li>구글 드라이브에서 어휘 목록이 담긴 스프레드시트를 엽니다.</li>
+          <li>상단 메뉴에서 <b>[파일] ➔ [공유] ➔ [웹에 게시]</b>를 클릭합니다.</li>
+          <li>형식을 '웹페이지'에서 <b>[쉼표로 구분된 값(.csv)]</b>으로 변경하고 <b>[게시]</b>를 누릅니다.</li>
+          <li>생성된 링크를 복사하여 위 입력란에 넣고 <b>[동기화 실행]</b>을 누르면 즉시 연결됩니다.</li>
+          <li><i>(간편 대안)</i> 시트 우측 상단 [공유]에서 <b>'링크가 있는 모든 사용자(뷰어)'</b>로 설정 후 일반 브라우저 주소를 넣으셔도 자동 변환됩니다.</li>
+        </ol>
+      </div>
+
+      <div class="mt-4 flex gap-2">
+        <button id="close-google-sheet-modal-bottom-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Spreadsheet Upload Modal -->
   <div id="spreadsheet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -758,6 +834,27 @@
     });
 
     // Load curriculum from localStorage or fallback
+    // Global Config for Permanent GitHub Pages Sync
+    const CONFIG = {
+      // 교수님이 여기에 구글 시트 CSV 링크를 한 줄 넣어두시면, 모든 학생이 접속 시 자동으로 이 시트를 읽어옵니다.
+      googleSheetCsvUrl: ''
+    };
+
+    function normalizeGoogleSheetUrl(url) {
+      if (!url) return '';
+      url = url.trim();
+      if (url.includes('output=csv') || url.includes('format=csv')) {
+        return url;
+      }
+      const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (match) {
+        const sheetId = match[1];
+        const gidMatch = url.match(/[#&?]gid=([0-9]+)/);
+        const gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
+        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv${gidParam}`;
+      }
+      return url;
+    }
     let CURRICULUM = [];
     function loadStoredCurriculum() {
       try {
@@ -805,6 +902,15 @@
     const mizigeBox = document.getElementById('mizige-box');
     const statusBox = document.getElementById('status-box');
     const strokeCounter = document.getElementById('stroke-counter');
+
+    // Google Sheets Sync DOM Elements
+    const googleSheetModal = document.getElementById('google-sheet-modal');
+    const googleSheetUrlInput = document.getElementById('google-sheet-url-input');
+    const syncStatusIndicator = document.getElementById('sync-status-indicator');
+    const disconnectSheetBtn = document.getElementById('disconnect-sheet-btn');
+    const shareLinkBox = document.getElementById('share-link-box');
+    const shareUrlDisplay = document.getElementById('share-url-display');
+    const copyShareUrlBtn = document.getElementById('copy-share-url-btn');
     const modeBadge = document.getElementById('mode-badge');
 
     const vocabWord = document.getElementById('vocab-word');
@@ -1657,12 +1763,143 @@
       }
     });
 
+    // Google Sheets Sync Logic
+    function updateSyncModalStatus(activeUrl) {
+      if (activeUrl) {
+        googleSheetUrlInput.value = activeUrl;
+        syncStatusIndicator.textContent = '연동 상태: ✅ 구글 시트 실시간 동기화 활성화됨';
+        syncStatusIndicator.className = 'text-[11px] text-emerald-700 font-bold';
+        disconnectSheetBtn.classList.remove('hidden');
+        shareLinkBox.classList.remove('hidden');
+        const shareUrl = `${window.location.origin}${window.location.pathname}?sheet=${encodeURIComponent(activeUrl)}`;
+        shareUrlDisplay.value = shareUrl;
+      } else {
+        googleSheetUrlInput.value = '';
+        syncStatusIndicator.textContent = '연동 상태: 미연동 (기본 단어장 사용 중)';
+        syncStatusIndicator.className = 'text-[11px] text-slate-500 font-medium';
+        disconnectSheetBtn.classList.add('hidden');
+        shareLinkBox.classList.add('hidden');
+        shareUrlDisplay.value = '';
+      }
+    }
+
+    async function syncGoogleSheet(rawUrl, isManual = true) {
+      const normalizedUrl = normalizeGoogleSheetUrl(rawUrl);
+      if (!normalizedUrl) {
+        if (isManual) showToast('유효한 구글 스프레드시트 링크를 입력해주세요.', '⚠️');
+        return false;
+      }
+
+      if (isManual) showToast('구글 시트에서 최신 데이터를 가져오는 중...', '⏳');
+
+      try {
+        const response = await fetch(normalizedUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const csvText = await response.text();
+        const workbook = XLSX.read(csvText, { type: 'string' });
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          throw new Error('스프레드시트에 시트가 없습니다.');
+        }
+        const firstSheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
+
+        if (!rows || rows.length === 0) {
+          throw new Error('시트에 어휘 데이터가 없거나 열 이름을 인식할 수 없습니다.');
+        }
+
+        parseSpreadsheetRows(rows);
+        localStorage.setItem('google_sheet_csv_url', rawUrl);
+        updateSyncModalStatus(rawUrl);
+
+        if (isManual) {
+          showToast('구글 스프레드시트 실시간 동기화가 완료되었습니다!', '🎉');
+          googleSheetModal.classList.add('hidden');
+        }
+        return true;
+      } catch (err) {
+        console.warn('Google Sheet Sync Error:', err);
+        if (isManual) {
+          showToast(`동기화 실패: ${err.message || '시트 공유 권한이나 링크를 확인하세요.'}`, '⚠️');
+        }
+        return false;
+      }
+    }
+
+    // Google Sheets Modal Event Listeners
+    document.getElementById('open-sync-modal-btn').addEventListener('click', () => {
+      const activeUrl = localStorage.getItem('google_sheet_csv_url') || CONFIG.googleSheetCsvUrl || '';
+      updateSyncModalStatus(activeUrl);
+      googleSheetModal.classList.remove('hidden');
+    });
+
+    document.getElementById('close-google-sheet-modal-btn').addEventListener('click', () => {
+      googleSheetModal.classList.add('hidden');
+    });
+
+    document.getElementById('close-google-sheet-modal-bottom-btn').addEventListener('click', () => {
+      googleSheetModal.classList.add('hidden');
+    });
+
+    document.getElementById('save-and-sync-btn').addEventListener('click', () => {
+      const url = googleSheetUrlInput.value.trim();
+      if (!url) {
+        showToast('구글 시트 링크를 입력해주세요.', '⚠️');
+        return;
+      }
+      syncGoogleSheet(url, true);
+    });
+
+    disconnectSheetBtn.addEventListener('click', () => {
+      showConfirmModal('구글 시트 연동 해제', '구글 시트 실시간 연동을 해제하고 기본 단어장으로 되돌리시겠습니까?', () => {
+        localStorage.removeItem('google_sheet_csv_url');
+        updateSyncModalStatus('');
+        loadStoredCurriculum();
+        renderUnitTabs();
+        renderWordPills();
+        if (CURRICULUM[0] && CURRICULUM[0].words[0]) {
+          selectWord(CURRICULUM[0].words[0]);
+        }
+        showToast('구글 시트 연동이 해제되었습니다.', '🔄');
+      });
+    });
+
+    copyShareUrlBtn.addEventListener('click', () => {
+      shareUrlDisplay.select();
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(shareUrlDisplay.value);
+        } else {
+          document.execCommand('copy');
+        }
+        showToast('학생용 자동 연동 링크가 복사되었습니다!', '📋');
+      } catch (e) {
+        document.execCommand('copy');
+        showToast('학생용 자동 연동 링크가 복사되었습니다!', '📋');
+      }
+    });
+
     // Initialize on page load
-    window.onload = function() {
+    window.onload = async function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sheetParam = urlParams.get('sheet');
+      const targetSheetUrl = sheetParam || localStorage.getItem('google_sheet_csv_url') || CONFIG.googleSheetCsvUrl;
+
+      if (targetSheetUrl) {
+        const ok = await syncGoogleSheet(targetSheetUrl, false);
+        if (ok) {
+          showToast('구글 시트에서 최신 단어장을 불러왔습니다!', '📊');
+          return;
+        }
+      }
+
       loadStoredCurriculum();
       renderUnitTabs();
       renderWordPills();
-      selectWord(CURRICULUM[0].words[0]);
+      if (CURRICULUM[0] && CURRICULUM[0].words[0]) {
+        selectWord(CURRICULUM[0].words[0]);
+      }
     };
   </script>
 </body>

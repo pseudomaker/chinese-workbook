@@ -1,1906 +1,270 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>중국어 워크북 - 단어·구문·획순 쓰기</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <!-- Hanzi Writer CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
-  <!-- SheetJS for Excel (.xlsx) and CSV parsing -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <style>
-    /* Traditional Chinese Practice Grid (米字格) */
-    .mizige-grid {
-      background-color: #fffaf5;
-      background-image: 
-        linear-gradient(to right, transparent 49.5%, rgba(220, 38, 38, 0.25) 50%, transparent 50.5%),
-        linear-gradient(to bottom, transparent 49.5%, rgba(220, 38, 38, 0.25) 50%, transparent 50.5%),
-        linear-gradient(45deg, transparent 49.5%, rgba(220, 38, 38, 0.15) 50%, transparent 50.5%),
-        linear-gradient(-45deg, transparent 49.5%, rgba(220, 38, 38, 0.15) 50%, transparent 50.5%);
-      border: 3px solid #ef4444;
-      box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.3);
-    }
-    .mizige-grid.grid-off {
-      background-image: none;
-      background-color: #ffffff;
-      border: 2px solid #e2e8f0;
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>병원 가는 길 카드</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@700&display=swap">
+<style>
+/* Layout: one narrow column, a registration-slip (挂号单) card that appears after a 4-digit code */
+:root{
+  --bg:#eef1f3; --paper:#ffffff; --ink:#1d2a33; --muted:#5d6b75;
+  --line:#c9d2d8; --accent:#1f5f8b; --stamp:#b8402f; --wash:#e3edf4;
+  --f-cn:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --f-kr:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-head:"Noto Serif SC","Songti SC",serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#12181d; --paper:#1b242b; --ink:#e4ebf0; --muted:#9aa8b2;
+  --line:#33424d; --accent:#7fb6dc; --stamp:#e2826f; --wash:#22313b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181d; --paper:#1b242b; --ink:#e4ebf0; --muted:#9aa8b2;
+  --line:#33424d; --accent:#7fb6dc; --stamp:#e2826f; --wash:#22313b; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-kr);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 40px}
+.wrap{max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header h1{font-family:var(--f-kr);font-size:22px;font-weight:700;margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:22px 20px;display:flex;flex-direction:column;gap:14px}
+label{font-weight:500}
+.row{display:flex;gap:10px}
+input{flex:1;min-width:0;font:700 28px/1 var(--f-cn);letter-spacing:.35em;text-align:center;padding:12px 8px;
+  border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
+input:focus{outline:none;border-color:var(--accent)}
+button{font:500 16px var(--f-kr);border:0;border-radius:8px;padding:0 20px;background:var(--accent);color:var(--paper);cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.err{color:var(--stamp);font-size:14px;min-height:1.2em;margin:0}
+.slip{background:var(--paper);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.slip-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:14px 20px;background:var(--wash);border-bottom:1px dashed var(--line)}
+.slip-top .kind{font:700 13px var(--f-kr);letter-spacing:.08em;color:var(--accent)}
+.slip-top .time{font:500 13px var(--f-cn);color:var(--muted);font-variant-numeric:tabular-nums}
+.slip-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.role{display:flex;align-items:center;gap:12px}
+.role h2{font:700 26px/1.2 var(--f-head);margin:0}
+.role span{font-size:15px;color:var(--muted)}
+.stamp{margin-left:auto;border:2px solid var(--stamp);color:var(--stamp);font:700 13px var(--f-cn);padding:2px 8px;border-radius:4px;transform:rotate(-6deg);white-space:nowrap}
+ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+li{font-family:var(--f-cn);font-size:18px;line-height:1.55;padding-left:16px;position:relative}
+li::before{content:"";position:absolute;left:0;top:.7em;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+li .sub{display:block;font-size:16px;color:var(--ink);margin-top:2px}
+.ko{display:block;font-family:var(--f-kr);font-size:14px;color:var(--muted)}
+.words{border-top:1px solid var(--line);padding-top:12px;font-size:14px;color:var(--muted)}
+.words b{font-family:var(--f-cn);color:var(--ink);font-weight:500}
+.ask{font:500 17px var(--f-cn);color:var(--stamp)}
+.rule{font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding:12px 20px;margin:0}
+.again{align-self:flex-start;background:transparent;color:var(--accent);border:1.5px solid var(--accent);padding:10px 16px}
+@media (prefers-reduced-motion:no-preference){.slip{animation:in .25s ease-out}@keyframes in{from{transform:translateY(6px);opacity:.6}to{transform:none;opacity:1}}}
+.pick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.pick.seat{grid-template-columns:repeat(4,1fr)}
+.pick button{background:var(--bg);color:var(--ink);border:1.5px solid var(--line);padding:14px 0;font:700 20px var(--f-kr)}
+.pick button[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.open{padding:14px;font-size:17px}
+.open:disabled{opacity:.4;cursor:default}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.link{background:none;color:var(--muted);padding:0;font-size:14px;text-decoration:underline;align-self:center}
+.mission,.secret{border-radius:6px;padding:12px 14px;display:flex;flex-direction:column;gap:6px}
+.mission{background:var(--wash)}
+.secret{border:1.5px dashed var(--stamp)}
+.m-head{font:700 15px var(--f-cn);color:var(--accent)}
+.secret .m-head{color:var(--stamp)}
+.ko-i{font:400 12px var(--f-kr);color:var(--muted);margin-left:4px}
+.mission p,.secret p{margin:0;font:500 16px/1.55 var(--f-cn)}
+.mission .big{font-size:20px;font-weight:700}
+.mission .ok{font-size:14px;font-weight:400}
+.mission .ko,.secret .ko{font-size:12.5px;margin-top:2px}
+.decide{display:flex;flex-direction:column;gap:12px}
+.decide h3{margin:0;font:700 17px var(--f-cn)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{background:var(--bg);color:var(--ink);border:1.5px solid var(--line);padding:9px 14px;font:500 16px var(--f-cn);border-radius:999px}
+.chips button[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.res{display:flex;flex-direction:column;gap:10px}
+.verdict{font:700 24px var(--f-cn);margin:0}
+.verdict.ok{color:var(--accent)} .verdict.no{color:var(--stamp)}
+.line{margin:0;font:400 16px/1.5 var(--f-cn)}
+.line .ko{font-size:13px}
+.sm{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;font-size:15px;align-items:baseline}
+.sm b{font-family:var(--f-cn)}
+.go{background:var(--stamp)}
+#vbanner .secret{background:var(--paper);border-width:2.5px}
+#vbanner .m-head{font-size:18px}
+@media (prefers-reduced-motion:no-preference){#vbanner:not([hidden]){animation:pop .5s ease-out}@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:none}}}
+</style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
-  <!-- Toast Notification Container -->
-  <div id="toast-banner" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-y-[-100px] opacity-0 pointer-events-none">
-    <div id="toast-content" class="px-4 py-2.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-xl border border-slate-700 flex items-center gap-2">
-      <span id="toast-icon">ℹ️</span>
-      <span id="toast-msg">알림 메시지</span>
-    </div>
-  </div>
+<body>
 
-  <!-- In-page Confirm Modal -->
-  <div id="confirm-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl border border-slate-100">
-      <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-3">
-        ⚠️
-      </div>
-      <h3 class="text-base font-bold text-slate-900" id="confirm-title">확인</h3>
-      <p id="confirm-msg" class="text-xs text-slate-600 mt-1.5 leading-relaxed">정말 진행하시겠습니까?</p>
-      
-      <div class="mt-5 flex gap-2">
-        <button id="confirm-cancel-btn" class="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          취소
-        </button>
-        <button id="confirm-ok-btn" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
-          확인
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Top Navigation Bar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
-    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2.5">
-        <span class="text-2xl">📖</span>
-        <div>
-          <h1 class="text-lg font-bold text-slate-900 leading-tight">중국어 대화형 워크북</h1>
-          <p class="text-xs text-slate-500">단어학습 · 구문학습 · 획순 글자쓰기 연계 시스템</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <button id="open-sync-modal-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1 shadow-xs">
-          <span>🔄 구글 시트 실시간 연동</span>
-        </button>
-        <button id="open-spreadsheet-modal-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition flex items-center gap-1 shadow-sm">
-          <span>📊 엑셀/시트 일괄 업로드</span>
-        </button>
-        <button id="export-json-btn" class="px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition flex items-center gap-1">
-          <span>📤 커리큘럼 복사</span>
-        </button>
-        <button id="toggle-grid-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
-          <span>격자: <b id="grid-status-label">켜짐</b></span>
-        </button>
-        <button id="toggle-outline-btn" class="px-2.5 py-1.5 text-xs font-medium rounded-lg border border-slate-300 hover:bg-slate-100 transition text-slate-700 flex items-center gap-1">
-          <span>윤곽선: <b id="outline-status-label">켜짐</b></span>
-        </button>
-      </div>
-    </div>
+<div class="wrap">
+  <header>
+    <h1>병원 가는 길 카드</h1>
+    <p>모둠 번호와 자리를 고르면 내 역할 카드가 열립니다.</p>
   </header>
 
-  <main class="max-w-5xl mx-auto px-4 py-6 w-full flex-1 flex flex-col gap-5">
-    <!-- Category & Vocabulary Selector Bar with Unit Management -->
-    <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200">
-      <!-- 1st Row: Unit Tabs & Custom Word Search (Spacious, No Overlap) -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 flex-1 min-w-0 mr-2" id="unit-tabs-wrapper">
-          <!-- Unit Pills with inline Delete [x] buttons -->
-          <div class="flex items-center gap-1.5" id="unit-tabs">
-            <!-- Dynamically generated unit buttons -->
-          </div>
-        </div>
+  <div id="vbanner" hidden></div>
+  <div id="team"></div>
+  <section class="panel" id="picker">
+    <label>① 모둠 번호</label>
+    <div class="pick" id="groups"></div>
+    <label>② 내 자리 <span class="hint">(가위바위보로 정하세요. '라'는 4명 모둠만)</span></label>
+    <div class="pick seat" id="seats"></div>
+    <button type="button" class="open" id="openRole" disabled>내 카드 열기</button>
+    <button type="button" class="link" id="toCode">선생님이 알려 준 번호로 열기</button>
+  </section>
 
-        <!-- Custom Word / Character Input Form -->
-        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
-          <input 
-            type="text" 
-            id="custom-word-input" 
-            maxlength="6" 
-            placeholder="단어 직접 입력 (예: 咖啡)" 
-            class="w-36 sm:w-40 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-medium"
-          />
-          <button 
-            id="load-custom-word-btn" 
-            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg transition shrink-0"
-          >
-            단어 불러오기
-          </button>
-        </div>
-      </div>
+  <section class="panel decide" id="decide" hidden>
+    <h3>去哪个医院？<span class="ko-i">어느 병원</span></h3><div class="chips" id="dH"></div>
+    <h3>怎么去？<span class="ko-i">무엇을 타고</span></h3><div class="chips" id="dT"></div>
+    <h3>谁陪 A 去？<span class="ko-i">누가 같이</span></h3><div class="chips" id="dC"></div>
+    <h3>变化卡 <span class="ko-i">모둠이 받은 변수 카드</span></h3><div class="chips" id="dV"></div>
+    <button type="button" class="open" id="calc" disabled>结果是…？ 결과 보기</button>
+    <div class="res" id="res" hidden></div>
+    <button type="button" class="link" id="backPick">내 카드로 돌아가기</button>
+  </section>
 
-      <!-- 2nd Row: Unit Description & Unit/Word Management (Moved to Lower Level) -->
-      <div class="mt-3">
-        <div class="text-xs text-slate-500 font-medium mb-2.5 flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span>선택할 수 있는 어휘 목록:</span>
-            <span id="current-unit-desc" class="text-indigo-600 font-semibold"></span>
-          </div>
-          <!-- Unit Management Actions Moved to Lower Level -->
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <button 
-              id="open-add-unit-modal-btn" 
-              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 transition flex items-center gap-1 shadow-xs"
-              title="새 단원 추가하기"
-            >
-              <span>➕ 단원 추가</span>
-            </button>
-            <button 
-              id="delete-current-unit-btn" 
-              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center gap-1 shadow-xs"
-              title="현재 선택된 단원 삭제"
-            >
-              <span>🗑️ 현재 단원 삭제</span>
-            </button>
-            <button id="delete-unit-top-btn" class="hidden">🗑️ 단원 삭제</button>
-            <button 
-              id="open-add-word-modal-btn" 
-              class="px-2.5 py-1 text-[11px] font-semibold rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition flex items-center gap-1 shadow-xs"
-            >
-              <span>➕ 이 단원에 새 어휘 추가</span>
-            </button>
-          </div>
-        </div>
-        <div id="word-pills-container" class="flex flex-wrap gap-2 items-center">
-          <!-- Dynamically generated word pills -->
-        </div>
-      </div>
-    </section>
-
-    <!-- Main Workspace Section: Two Columns -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-      <!-- Left Column: Character Writing Canvas -->
-      <div class="lg:col-span-7 bg-white rounded-2xl p-5 shadow-sm border border-slate-200 flex flex-col items-center">
-        <!-- Word Progress & Character Sub-tabs -->
-        <div class="w-full flex flex-col gap-2 mb-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-700 flex items-center gap-1">
-              <span>✍️ 글자 쓰기 연습</span>
-              <span id="writing-target-word" class="text-indigo-600 font-serif text-sm">你好</span>
-            </span>
-            <span id="word-char-progress" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-              글자 1 / 2
-            </span>
-          </div>
-
-          <!-- Character Selector Pills for Multi-character words -->
-          <div id="char-steps-container" class="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded-xl">
-            <!-- Dynamically generated character step pills -->
-          </div>
-        </div>
-
-        <!-- Mode & Stroke Count Status -->
-        <div class="w-full flex items-center justify-between px-1 mb-2">
-          <span id="mode-badge" class="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold">
-            ✍️ 직접 쓰기 퀴즈
-          </span>
-          <span id="stroke-counter" class="text-xs text-slate-500 font-medium">
-            획순: 계산 중...
-          </span>
-        </div>
-
-        <!-- Hanzi Writer Container (with 米字格) -->
-        <div class="relative p-1">
-          <div id="mizige-box" class="mizige-grid rounded-2xl flex items-center justify-center relative cursor-crosshair overflow-hidden shadow-inner" style="width: 270px; height: 270px;">
-            <div id="character-target-div" class="w-full h-full flex items-center justify-center"></div>
-          </div>
-        </div>
-
-        <!-- Feedback & Instruction Box -->
-        <div id="status-box" class="mt-3 w-full py-2.5 px-3 rounded-xl bg-slate-50 border border-slate-200 text-center text-xs font-medium text-slate-600 transition-all duration-200 min-h-[42px] flex items-center justify-center">
-          격자 안에서 첫 번째 획을 순서대로 그어보세요.
-        </div>
-
-        <!-- Action Control Buttons -->
-        <div class="grid grid-cols-3 gap-2 w-full mt-3">
-          <button id="animate-btn" class="px-3 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 border border-indigo-100">
-            <span>▶️ 획순 시연</span>
-            <span class="text-[10px] text-indigo-500 font-normal">애니메이션 보기</span>
-          </button>
-          <button id="restart-quiz-btn" class="px-3 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 shadow-sm">
-            <span>✍️ 다시 쓰기</span>
-            <span class="text-[10px] text-blue-200 font-normal">퀴즈 처음부터</span>
-          </button>
-          <button id="hint-btn" class="px-3 py-2 bg-amber-50 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-semibold transition flex flex-col items-center gap-0.5 border border-amber-200">
-            <span>💡 힌트 보기</span>
-            <span class="text-[10px] text-amber-600 font-normal">다음 획 하이라이트</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right Column: 단어 학습 & 구문 학습 카드 -->
-      <div class="lg:col-span-5 flex flex-col gap-4">
-        <!-- 1. 단어 학습 카드 (Vocabulary Card) -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200">
-          <div class="flex items-start justify-between">
-            <div>
-              <div class="flex items-center gap-2">
-                <span id="word-badge" class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  HSK 1급 어휘
-                </span>
-                <span id="word-pos" class="text-[10px] font-medium text-slate-500">
-                  인사말
-                </span>
-              </div>
-              <div class="flex items-baseline gap-3 mt-2">
-                <span id="vocab-word" class="text-3xl font-extrabold text-slate-900 font-serif">你好</span>
-                <span id="vocab-pinyin" class="text-lg font-bold text-indigo-600">nǐ hǎo</span>
-              </div>
-            </div>
-            <button id="speak-word-btn" class="p-2.5 rounded-full bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 transition border border-slate-200 text-slate-700" title="단어 표준 발음 듣기">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-              </svg>
-            </button>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-100 space-y-2 text-xs">
-            <div class="flex justify-between py-1">
-              <span class="text-slate-500 font-medium">한국어 뜻</span>
-              <span id="vocab-meaning" class="font-bold text-slate-800 text-sm">안녕하세요</span>
-            </div>
-            <div class="flex justify-between py-1">
-              <span class="text-slate-500 font-medium">현재 연습 글자</span>
-              <span id="current-char-info" class="font-bold text-indigo-600">你 (7획)</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. 구문 학습 카드 (Grammar & Dialogue Conversation Card) -->
-        <div class="bg-indigo-50/70 rounded-2xl p-4 sm:p-5 border border-indigo-100 shadow-sm flex flex-col gap-2.5">
-          <div class="flex items-center justify-between mb-0.5">
-            <span class="text-xs font-bold text-indigo-900 flex items-center gap-1.5">
-              <span>💬 연계 회화 학습 (A/B 대화 예문)</span>
-            </span>
-            <button id="speak-sentence-btn" class="px-2.5 py-1 rounded-lg bg-white/90 hover:bg-white text-indigo-600 transition border border-indigo-200 text-xs font-semibold flex items-center gap-1 shadow-xs">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-              </svg>
-              <span>문장 듣기</span>
-            </button>
-          </div>
-
-          <!-- Dialogue Bubbles Container -->
-          <div class="space-y-2.5" id="dialogue-container">
-            <!-- Speaker A Bubble -->
-            <div class="p-3 rounded-2xl bg-white border border-indigo-100/90 shadow-xs flex items-start gap-2.5">
-              <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">A</span>
-              <div class="flex-1 min-w-0">
-                <p id="sentence-zh" class="text-sm sm:text-base font-bold text-slate-900 font-serif leading-snug">王老师，您好！</p>
-                <p id="sentence-py" class="text-xs font-medium text-indigo-600 mt-0.5">Wáng lǎoshī, nín hǎo !</p>
-                <p id="sentence-ko" class="text-xs text-slate-600 mt-1">왕 선생님, 안녕하세요!</p>
-              </div>
-              <button id="speak-a-btn" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-slate-50 transition shrink-0" title="A 발음 듣기">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-              </button>
-            </div>
-
-            <!-- Speaker B Bubble -->
-            <div id="dialogue-b-box" class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100/90 shadow-xs flex items-start gap-2.5">
-              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5 shadow-xs">B</span>
-              <div class="flex-1 min-w-0">
-                <p id="sentence-b-zh" class="text-sm sm:text-base font-bold text-slate-900 font-serif leading-snug">你好！今天学习怎么样？</p>
-                <p id="sentence-b-py" class="text-xs font-medium text-emerald-700 mt-0.5">Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?</p>
-                <p id="sentence-b-ko" class="text-xs text-slate-600 mt-1">안녕하세요! 오늘 공부는 어때요?</p>
-              </div>
-              <button id="speak-b-btn" class="p-1.5 text-slate-400 hover:text-emerald-700 rounded-lg hover:bg-white/50 transition shrink-0" title="B 발음 듣기">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path></svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Grammar point note -->
-          <div class="mt-0.5 text-[11px] text-indigo-900 leading-relaxed bg-white/60 p-2.5 rounded-xl border border-indigo-100/60">
-            <span class="font-bold text-indigo-900">💡 회화 & 문법 포인트:</span>
-            <span id="sentence-tip" class="ml-1 text-slate-700">상대방의 직함이나 이름 뒤에 '你好'를 붙여 정중하게 인사합니다.</span>
-          </div>
-        </div>
-
-        <!-- 3. 연구자 설계 팁 -->
-        <div class="bg-slate-100/70 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-1.5">
-          <div class="font-bold text-slate-800 flex items-center justify-between">
-            <span class="flex items-center gap-1">📊 단원 관리 및 스프레드시트 일괄 연동</span>
-            <button id="reset-default-btn" class="text-[10px] text-slate-400 hover:text-rose-600 underline">
-              기본 단원으로 초기화
-            </button>
-          </div>
-          <p class="leading-relaxed">
-            단원을 지우고 싶을 때는 상단 <b>[🗑️ 단원 삭제]</b> 버튼을 누르거나, 각 단원 탭의 <b>✕</b> 버튼을 누르시면 바로 제거됩니다. 엑셀 파일 업로드로 수십 개 단원을 한 번에 채울 수도 있습니다.
-          </p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Google Sheet Sync Modal -->
-  <div id="google-sheet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100 max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">🔄</span>
-          <h3 class="text-base font-bold text-slate-900">구글 스프레드시트 실시간 연동</h3>
-        </div>
-        <button id="close-google-sheet-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      
-      <p class="text-xs text-slate-600 mb-3 leading-relaxed">
-        구글 스프레드시트 링크를 등록하면, 교수님이 시트에서 단어나 대화를 수정할 때마다 <b>깃허브 접속이나 코드 복사 없이</b> 학생들 화면에 즉시 자동 반영됩니다.
-      </p>
-
-      <!-- URL Input Box -->
-      <div class="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-100 mb-4 space-y-2">
-        <label class="block text-xs font-bold text-emerald-950">구글 시트 CSV 링크 (또는 일반 시트 공유 링크)</label>
-        <div class="flex gap-2">
-          <input 
-            type="text" 
-            id="google-sheet-url-input" 
-            placeholder="https://docs.google.com/spreadsheets/d/.../pub?output=csv" 
-            class="flex-1 px-3 py-2 text-xs border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none bg-white font-mono"
-          />
-        </div>
-        <div class="flex items-center justify-between pt-1">
-          <span id="sync-status-indicator" class="text-[11px] text-emerald-700 font-medium">연동 상태: 미연동 (기본 단어장 사용 중)</span>
-          <div class="flex gap-1.5">
-            <button id="disconnect-sheet-btn" class="px-2.5 py-1 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 font-medium transition hidden">
-              연동 해제
-            </button>
-            <button id="save-and-sync-btn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1">
-              <span>동기화 실행</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Share link for students -->
-      <div id="share-link-box" class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-100 mb-4 hidden">
-        <div class="flex items-center justify-between mb-1">
-          <span class="text-xs font-bold text-indigo-950 flex items-center gap-1">
-            <span>🔗 학생 배포용 자동 연동 링크</span>
-          </span>
-          <button id="copy-share-url-btn" class="px-2.5 py-1 bg-white border border-indigo-200 text-indigo-700 hover:bg-indigo-50 rounded-lg text-xs font-semibold transition shadow-xs">
-            링크 복사
-          </button>
-        </div>
-        <p class="text-[11px] text-indigo-700 leading-snug">이 주소를 학생들에게 카카오톡이나 LMS에 공유하면, 학생들은 설정 없이 접속 즉시 교수님의 구글 시트를 자동으로 읽어옵니다.</p>
-        <input type="text" id="share-url-display" readonly class="mt-2 w-full px-2.5 py-1 text-[11px] bg-white border border-indigo-200 rounded-lg text-slate-600 font-mono select-all" />
-      </div>
-
-      <!-- Step-by-Step Guide -->
-      <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-2">
-        <span class="font-bold text-slate-800 block text-xs">📌 1분 구글 시트 링크 생성 방법:</span>
-        <ol class="list-decimal list-inside space-y-1.5 text-[11px] leading-relaxed text-slate-600">
-          <li>구글 드라이브에서 어휘 목록이 담긴 스프레드시트를 엽니다.</li>
-          <li>상단 메뉴에서 <b>[파일] ➔ [공유] ➔ [웹에 게시]</b>를 클릭합니다.</li>
-          <li>형식을 '웹페이지'에서 <b>[쉼표로 구분된 값(.csv)]</b>으로 변경하고 <b>[게시]</b>를 누릅니다.</li>
-          <li>생성된 링크를 복사하여 위 입력란에 넣고 <b>[동기화 실행]</b>을 누르면 즉시 연결됩니다.</li>
-          <li><i>(간편 대안)</i> 시트 우측 상단 [공유]에서 <b>'링크가 있는 모든 사용자(뷰어)'</b>로 설정 후 일반 브라우저 주소를 넣으셔도 자동 변환됩니다.</li>
-        </ol>
-      </div>
-
-      <div class="mt-4 flex gap-2">
-        <button id="close-google-sheet-modal-bottom-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          닫기
-        </button>
-      </div>
+  <form class="panel" id="form" autocomplete="off" hidden>
+    <label for="code">카드 번호</label>
+    <div class="row">
+      <input id="code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="0000" aria-describedby="err">
+      <button type="submit" id="go">열기</button>
     </div>
-  </div>
+    <p class="err" id="err" role="alert"></p>
+    <button type="button" class="link" id="toPick">모둠·자리로 고르기</button>
+  </form>
 
-  <!-- Spreadsheet Upload Modal -->
-  <div id="spreadsheet-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100">
-      <div class="flex items-center justify-between mb-3">
-        <div class="flex items-center gap-2">
-          <span class="text-xl">📊</span>
-          <h3 class="text-base font-bold text-slate-900">엑셀 / 스프레드시트 일괄 업로드</h3>
-        </div>
-        <button id="close-spreadsheet-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      
-      <p class="text-xs text-slate-500 mb-4 leading-relaxed">
-        구글 스프레드시트나 엑셀에 정리된 어휘 표를 올리면 한 번에 여러 단원과 단어가 등록됩니다.
-      </p>
+  <div id="out" hidden></div>
+</div>
 
-      <!-- 1. Template Download Section -->
-      <div class="p-3.5 bg-indigo-50/70 rounded-2xl border border-indigo-100 mb-4 flex items-center justify-between">
-        <div>
-          <span class="text-xs font-bold text-indigo-900 block">표 양식이 필요하신가요?</span>
-          <span class="text-[11px] text-indigo-600">미리 준비된 CSV/엑셀 예제 템플릿을 내려받아 단어만 채워보세요.</span>
-        </div>
-        <button id="download-template-btn" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shrink-0 shadow-sm flex items-center gap-1">
-          <span>📥 양식 다운로드</span>
-        </button>
-      </div>
-
-      <!-- 2. File Drop Area -->
-      <div id="drop-zone" class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50 hover:bg-indigo-50/30">
-        <span class="text-3xl block mb-2">📁</span>
-        <span class="text-xs font-bold text-slate-800 block">엑셀(.xlsx) 또는 CSV 파일을 여기로 드래그하세요</span>
-        <span class="text-[11px] text-slate-400 block mt-1">또는 아래 버튼을 눌러 파일 선택</span>
-        <input type="file" id="spreadsheet-file-input" accept=".xlsx, .xls, .csv" class="hidden" />
-        <button type="button" id="browse-file-btn" class="mt-3 px-3 py-1.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl shadow-xs transition">
-          내 컴퓨터에서 파일 선택
-        </button>
-      </div>
-
-      <!-- Column Mapping Guide -->
-      <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 text-[11px] text-slate-500 space-y-1">
-        <span class="font-bold text-slate-700 block">💡 엑셀 열(Column) 이름 가이드:</span>
-        <p>• <b>단원명</b> (예: 제4과: 식당과 주문) / <b>단원설명</b></p>
-        <p>• <b>단어</b> (예: 米饭) / <b>병음</b> (mǐ fàn) / <b>한국어뜻</b> (밥)</p>
-        <p>• <b>예문</b> (중국어 회화) / <b>예문번역</b> / <b>문법팁</b></p>
-      </div>
-
-      <div class="mt-4 flex gap-2">
-        <button id="cancel-spreadsheet-modal-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          닫기
-        </button>
-      </div>
+<script>
+const RULE='卡片不能给别人看，只能用汉语说。<span class="ko">카드를 보여 주지 말고, 중국어로만 말하세요.</span>';
+const TEAM='<div class="mission"><div class="m-head">小组任务 <span class="ko-i">모둠 미션</span></div><p class="big">让 A 今天见到医生。<span class="ko">A가 오늘 의사를 만나게 하라.</span></p></div>';
+document.getElementById('team').innerHTML=TEAM;
+const ASK='请再想一想：你们的决定要改吗？<span class="ko">결정을 바꿔야 할까요?</span>';
+const CARDS={
+ "2718":{kind:"角色卡 1 · 역할 카드",role:"病人",ko:"환자",name:"A",items:[
+   "我是 A，是留学生。","我发烧，头疼。","吃了药，但是没有好转。","我汉语不太好，怕听不懂医生的话。","我钱包里只有 20 块钱。","我今天一定要看病。"],words:[["留学生","유학생"]],rule:true,secret:["你不想一个人去医院。让一个人陪你去！","혼자 병원에 가기 싫다. 누군가가 같이 가 주게 만들어라!"]},
+ "3142":{kind:"角色卡 2 · 역할 카드",role:"朋友",ko:"친구",name:"B",items:[
+   "我是 B，是 A 的中国朋友。","我五点有汉语课，不能迟到。",
+   '我有地图：<span class="sub">小医院：走路 20 分钟，打车 5 分钟</span><span class="sub">大医院：打车 20 分钟，坐公交车 40 分钟</span>',
+   "我想帮 A，可是汉语课也很重要。"],words:[["公交车","버스"]],rule:true,secret:["帮 A 去看病，可是五点的汉语课一定不能迟到！","A가 진료받게 돕되, 5시 수업에는 절대 늦지 마라!"]},
+ "1618":{kind:"角色卡 3 · 역할 카드",role:"宿舍管理员",ko:"기숙사 관리인",name:"C",items:[
+   "我是 C，是宿舍管理员。","小医院：四点停止看病，没有翻译。","大医院：六点停止看病，有韩语翻译。",
+   "打车：到小医院 10 块，到大医院 35 块。","坐公交车：2 块。"],words:[["停止看病","진료 마감"],["翻译","통역"],["说服","설득하다"]],rule:true,secret:["你觉得大医院最好，因为有翻译。说服大家去大医院！","큰 병원이 가장 좋다고 생각한다(통역이 있으니까). 모두가 큰 병원에 가도록 설득하라!"]},
+ "4271":{kind:"角色卡 4 · 확장 카드 (4명 모둠)",role:"室友",ko:"룸메이트",name:"D",items:[
+   "我是 D，是 A 的室友。","我会说一点儿韩语。",
+   '学校里有校医院：<span class="sub">走路 10 分钟，五点停止看病，不要钱。</span><span class="sub">可是今天人很多，要等一个小时。</span>',
+   "我有自行车，骑车到小医院 10 分钟。",
+   "我六点要去打工，不能晚。"],words:[["室友","룸메이트"],["校医院","교내 병원"],["骑车","자전거를 타다"],["打工","아르바이트하다"],["说服","설득하다"]],rule:true,secret:["你觉得校医院最好，因为不要钱。说服大家去校医院！","교내 병원이 가장 좋다고 생각한다(돈이 안 드니까). 모두가 교내 병원에 가도록 설득하라!"]},
+ "5301":{kind:"变化卡 1 · 변수 카드",role:"堵车",ko:"교통 체증",stamp:"变化",items:[
+   '路上堵车，打车要多 15 分钟。<span class="ko">길이 막혀서 택시가 15분 더 걸립니다.</span>'],words:[["堵车","길이 막히다"]],ask:true},
+ "6420":{kind:"变化卡 2 · 변수 카드",role:"取消",ko:"수업 취소",stamp:"变化",items:[
+   'B 的汉语课取消了。<span class="ko">B의 중국어 수업이 취소되었습니다.</span>'],words:[["取消","취소하다"]],ask:true},
+ "7539":{kind:"变化卡 3 · 변수 카드",role:"下雨",ko:"비",stamp:"变化",items:[
+   '下雨了，公交车很慢，要多 20 分钟。<span class="ko">비가 와서 버스가 20분 더 걸립니다.</span>'],ask:true},
+ "8648":{kind:"变化卡 4 · 변수 카드",role:"借钱",ko:"돈 빌리기",stamp:"变化",items:[
+   '宿舍管理员可以借 A 20 块钱。<span class="ko">관리인이 A에게 20위안을 빌려줄 수 있습니다.</span>'],words:[["借","빌려주다"]],ask:true}
+};
+const VAR={"A":"5301","B":"6420","C":"7539","D":"8648"};
+const PERMS=[["2718","3142","1618"],["3142","1618","2718"],["1618","2718","3142"],["2718","1618","3142"],["3142","2718","1618"],["1618","3142","2718"]];
+const $=id=>document.getElementById(id);
+const picker=$('picker'),form=$('form'),input=$('code'),err=$('err'),out=$('out');
+let group=null,seat=null,lastCode=null;
+function buttons(box,labels,onPick){labels.forEach((t,i)=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',()=>{[...box.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');onPick(i);});box.appendChild(b);});}
+buttons($('groups'),['1','2','3','4','5','6','7','8'],i=>{group=i;ready();});
+buttons($('seats'),['가','나','다','라'],i=>{seat=i;ready();});
+function ready(){$('openRole').disabled=!(group!==null&&seat!==null);}
+$('openRole').addEventListener('click',()=>{show(seat===3?'4271':PERMS[group%6][seat],picker);armVariable(group+1,seat);});
+$('toCode').addEventListener('click',()=>{picker.hidden=true;form.hidden=false;input.focus();});
+$('toPick').addEventListener('click',()=>{form.hidden=true;picker.hidden=false;});
+input.addEventListener('input',()=>{input.value=input.value.replace(/\D/g,'').slice(0,4);err.textContent='';});
+form.addEventListener('submit',e=>{e.preventDefault();
+  if(!CARDS[input.value]){err.textContent=input.value.length<4?'번호 4자리를 모두 넣어 주세요.':'없는 번호입니다. 다시 확인해 주세요.';return;}
+  show(input.value,form);});
+function show(code,from){const c=CARDS[code];
+  out.innerHTML=`<article class="slip">
+    <div class="slip-top"><span class="kind">${c.kind}</span><span class="time">现在 下午 3:50</span></div>
+    <div class="slip-body">
+      <div class="role"><h2>${c.role}</h2><span>${c.name?c.name+" · ":""}${c.ko}</span><span class="stamp">${c.stamp||'角色'}</span></div>
+      <ul>${c.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+      ${c.words?`<div class="words">生词 · ${c.words.map(w=>`<b>${w[0]}</b> ${w[1]}`).join(' / ')}</div>`:''}
+      ${c.ask?`<div class="ask">${ASK}</div>`:''}
+      ${c.secret?`<div class="secret"><div class="m-head">秘密任务 <span class="ko-i">비밀 미션 · 다른 사람에게 말하지 마세요</span></div><p>${c.secret[0]}<span class="ko">${c.secret[1]}</span></p></div>`:''}
     </div>
-  </div>
-
-  <!-- Add Unit Modal -->
-  <div id="add-unit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-xl border border-slate-100">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold text-slate-900">➕ 새 단원 추가</h3>
-        <button id="close-unit-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-
-      <!-- Quick Preset Themes -->
-      <div class="mb-4 p-3 bg-indigo-50/60 rounded-xl border border-indigo-100">
-        <span class="text-xs font-bold text-indigo-900 block mb-1.5">⚡ 클릭 시 추천 테마 자동 채우기:</span>
-        <div class="flex flex-wrap gap-1.5">
-          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제4과: 식당과 주문" data-desc="식사 주문 및 맛 표현" data-word="米饭" data-pinyin="mǐ fàn" data-mean="쌀밥 / 밥" data-zh="我想吃米饭。" data-py="wǒ xiǎng chī mǐ fàn ." data-ko="저는 밥을 먹고 싶습니다.">
-            🍜 식당과 주문
-          </button>
-          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제5과: 날씨와 계절" data-desc="오늘의 날씨 묘사 어휘" data-word="今天" data-pinyin="jīn tiān" data-mean="오늘" data-zh="今天天气很好。" data-py="jīn tiān tiān qì hěn hǎo ." data-ko="오늘 날씨가 매우 좋습니다.">
-            ⛅ 날씨와 계절
-          </button>
-          <button type="button" class="preset-theme-btn px-2.5 py-1 bg-white hover:bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg border border-indigo-200 transition" data-name="제6과: 쇼핑과 가격" data-desc="물건 사기와 가격 묻기" data-word="多少" data-pinyin="duō shao" data-mean="얼마 / 몇" data-zh="这个多少钱？" data-py="zhè ge duō shao qián ?" data-ko="이것은 얼마입니까?">
-            🛍️ 쇼핑과 가격
-          </button>
-        </div>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">단원 이름 (예: 제4과: 식당과 음식)</label>
-          <input type="text" id="new-unit-name" placeholder="제4과: 식당과 음식" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">단원 부제/설명 (예: 식사 주문과 음식 어휘)</label>
-          <input type="text" id="new-unit-desc" placeholder="식사 주문과 음식 관련 기본 어휘" class="w-full px-3 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-        </div>
-        <div class="pt-2 border-t border-slate-100">
-          <span class="block font-semibold text-slate-700 mb-1">첫 번째 포함할 어휘 (선택):</span>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="new-unit-word" placeholder="단어 (예: 饺子)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-            <input type="text" id="new-unit-pinyin" placeholder="병음 (예: jiǎo zi)" class="px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          </div>
-          <input type="text" id="new-unit-mean" placeholder="한국어 뜻 (예: 만두)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          <input type="text" id="new-unit-zh" placeholder="중국어 예문 (예: 饺子很好吃。)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          <input type="text" id="new-unit-ko" placeholder="예문 한국어 번역 (예: 만두가 매우 맛있습니다.)" class="w-full mt-2 px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-        </div>
-      </div>
-
-      <div class="mt-5 flex gap-2">
-        <button id="cancel-unit-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          취소
-        </button>
-        <button id="submit-unit-btn" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
-          단원 생성하기
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Word Modal -->
-  <div id="add-word-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-xl border border-slate-100">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="text-base font-bold text-slate-900">➕ 어휘 추가</h3>
-        <button id="close-word-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <p class="text-xs text-slate-500 mb-3"><b id="modal-target-unit-name" class="text-indigo-600"></b>에 새 단어를 추가합니다.</p>
-
-      <div class="space-y-2.5 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">단어 (한자)</label>
-          <input type="text" id="add-word-input" placeholder="예: 苹果" class="w-full px-3 py-2 border border-slate-300 rounded-xl font-serif text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">병음 (Pinyin)</label>
-            <input type="text" id="add-pinyin-input" placeholder="píng guǒ" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">품사 / 등급</label>
-            <input type="text" id="add-pos-input" placeholder="명사 (HSK 1급)" class="w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs" />
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">한국어 뜻</label>
-          <input type="text" id="add-mean-input" placeholder="사과" class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs" />
-        </div>
-        <div class="pt-2 border-t border-slate-100 space-y-1.5">
-          <label class="block font-semibold text-slate-700">연계 대화 예문 (A/B 대화문)</label>
-          <!-- Speaker A inputs -->
-          <div class="p-2 bg-indigo-50/50 rounded-lg border border-indigo-100">
-            <span class="text-[10px] font-bold text-indigo-700 block mb-1">🧑‍🏫 화자 A (질문/첫 문장)</span>
-            <input type="text" id="add-sentence-zh" placeholder="A 중국어 (예: 你想吃苹果吗？)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs font-serif" />
-            <input type="text" id="add-sentence-py" placeholder="A 병음 (예: nǐ xiǎng chī píng guǒ ma ?)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs" />
-            <input type="text" id="add-sentence-ko" placeholder="A 한국어 번역 (예: 사과 드시겠어요?)" class="w-full px-2 py-1 border border-slate-200 rounded text-xs" />
-          </div>
-          <!-- Speaker B inputs -->
-          <div class="p-2 bg-emerald-50/50 rounded-lg border border-emerald-100">
-            <span class="text-[10px] font-bold text-emerald-700 block mb-1">🙋‍♂️ 화자 B (응답/대답 문장 - 선택)</span>
-            <input type="text" id="add-sentence-b-zh" placeholder="B 중국어 (예: 好的，这个苹果很甜。)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs font-serif" />
-            <input type="text" id="add-sentence-b-py" placeholder="B 병음 (예: hǎo de , zhè ge píng guǒ hěn tián .)" class="w-full mb-1 px-2 py-1 border border-slate-200 rounded text-xs" />
-            <input type="text" id="add-sentence-b-ko" placeholder="B 한국어 번역 (예: 네, 이 사과 매우 다네요.)" class="w-full px-2 py-1 border border-slate-200 rounded text-xs" />
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-4 flex gap-2">
-        <button id="cancel-word-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          취소
-        </button>
-        <button id="submit-word-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
-          어휘 등록
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Export JSON Modal -->
-  <div id="export-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-lg w-full shadow-xl border border-slate-100">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-base font-bold text-slate-900">📤 커리큘럼 데이터 복사 / 내보내기</h3>
-        <button id="close-export-modal-btn" class="text-slate-400 hover:text-slate-600 text-lg font-bold">✕</button>
-      </div>
-      <p class="text-xs text-slate-500 mb-3 leading-relaxed">
-        현재 웹에서 추가·수정한 모든 단원과 어휘가 포함된 JSON 코드입니다. 아래 코드를 복사하여 GitHub `index.html`의 <code>DEFAULT_CURRICULUM</code> 배열에 붙여넣으면 모든 사용자에게 영구 배포됩니다.
-      </p>
-      <textarea id="export-json-textarea" readonly class="w-full h-48 p-3 text-[11px] font-mono bg-slate-50 border border-slate-200 rounded-xl focus:outline-none"></textarea>
-      
-      <div class="mt-4 flex gap-2">
-        <button id="copy-json-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1">
-          <span>📋 JSON 코드 전체 복사하기</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Success Toast Modal -->
-  <div id="success-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-xl border border-slate-100 transform transition-all scale-95 opacity-0 duration-200" id="modal-card">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
-        🎉
-      </div>
-      <h3 class="text-lg font-bold text-slate-900" id="modal-title">글자 완성!</h3>
-      <p id="modal-stats" class="text-xs text-slate-500 mt-1">획순에 맞춰 글자를 바르게 완성했습니다.</p>
-      
-      <div class="mt-4 p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-around text-xs">
-        <div>
-          <span class="block text-slate-400 text-[10px]">완성 글자</span>
-          <span id="modal-char" class="text-2xl font-bold font-serif text-slate-800">你</span>
-        </div>
-        <div>
-          <span class="block text-slate-400 text-[10px]">틀린 횟수</span>
-          <span id="modal-mistakes" class="text-lg font-bold text-indigo-600">0회</span>
-        </div>
-      </div>
-
-      <div class="mt-5 flex gap-2">
-        <button id="modal-retry-btn" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs rounded-xl transition">
-          다시 연습
-        </button>
-        <button id="modal-next-btn" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl transition shadow-sm">
-          다음 글자 ▶
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // Default Curriculum Data Template
-        const DEFAULT_CURRICULUM = [
-      {
-        unitId: 'unit-1',
-        unitName: '제1과: 만남과 인사',
-        unitDesc: '기본 인사말과 호칭 어휘',
-        words: [
-          {
-            word: '你好',
-            pinyin: 'nǐ hǎo',
-            meaning: '안녕하세요',
-            pos: '인사말 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '王老师，您好！',
-            sentencePy: 'Wáng lǎoshī, nín hǎo !',
-            sentenceKo: '왕 선생님, 안녕하세요!',
-            sentenceBZh: '你好！今天学习怎么样？',
-            sentenceBPy: 'Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?',
-            sentenceBKo: '안녕하세요! 오늘 공부는 어때요?',
-            sentenceTip: "상대방의 호칭(이름/직함) 뒤에 '你好'를 붙여 인사합니다. 존칭은 '您好'입니다."
-          },
-          {
-            word: '谢谢',
-            pinyin: 'xiè xie',
-            meaning: '고맙습니다 / 감사합니다',
-            pos: '인사말 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '谢谢你的帮助。',
-            sentencePy: 'xiè xie nǐ de bāng zhù .',
-            sentenceKo: '도와주셔서 감사합니다.',
-            sentenceBZh: '不客气，这是我应该做的。',
-            sentenceBPy: 'bú kè qi , zhè shì wǒ yīng gāi zuò de .',
-            sentenceBKo: '천만에요, 당연히 해야 할 일인걸요.',
-            sentenceTip: "감사를 표할 때 사용하며, 대답으로는 '不用谢(천만에요)' 또는 '不客气'를 씁니다."
-          },
-          {
-            word: '再见',
-            pinyin: 'zài jiàn',
-            meaning: '안녕히 가세요 / 또 만나요',
-            pos: '인사말 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '明天见，再见！',
-            sentencePy: 'míng tiān jiàn , zài jiàn !',
-            sentenceKo: '내일 봐요, 안녕히 가세요!',
-            sentenceBZh: '再见，路上小心！',
-            sentenceBPy: 'zài jiàn , lù shang xiǎo xīn !',
-            sentenceBKo: '잘 가요, 조심해서 가세요!',
-            sentenceTip: "'再(다시)'와 '见(만나다)'의 합성어로, 헤어질 때 건네는 표준 인사입니다."
-          },
-          {
-            word: '高兴',
-            pinyin: 'gāo xìng',
-            meaning: '기쁘다 / 반갑다',
-            pos: '형용사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '认识你很高兴。',
-            sentencePy: 'rèn shi nǐ hěn gāo xìng .',
-            sentenceKo: '당신을 알게 되어 매우 기쁩니다.',
-            sentenceBZh: '我也很高兴认识你！',
-            sentenceBPy: 'wǒ yě hěn gāo xìng rèn shi nǐ !',
-            sentenceBKo: '저도 만나 뵙게 되어 정말 반가워요!',
-            sentenceTip: "첫 대면에서 호감을 표할 때 쓰는 대표적인 정중한 관용 표현입니다."
-          }
-        ]
-      },
-      {
-        unitId: 'unit-2',
-        unitName: '제2과: 학교와 배움',
-        unitDesc: '학습 및 수업 관련 기초 표현',
-        words: [
-          {
-            word: '学习',
-            pinyin: 'xué xí',
-            meaning: '배우다 / 공부하다',
-            pos: '동사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '你在哪儿学习汉语？',
-            sentencePy: 'nǐ zài nǎr xué xí hàn yǔ ?',
-            sentenceKo: '당신은 어디에서 중국어를 배우나요?',
-            sentenceBZh: '我在大学学习汉语。',
-            sentenceBPy: 'wǒ zài dà xué xué xí hàn yǔ .',
-            sentenceBKo: '저는 대학교에서 중국어를 공부해요.',
-            sentenceTip: "'学习(학습)'은 단독 동사로 쓰이거나 뒤에 학문 목적어를 동반합니다."
-          },
-          {
-            word: '老师',
-            pinyin: 'lǎo shī',
-            meaning: '선생님 / 교수님',
-            pos: '명사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '张老师是中文老师吗？',
-            sentencePy: 'zhāng lǎo shī shì zhōng wén lǎo shī ma ?',
-            sentenceKo: '장 선생님은 중국어 선생님이신가요?',
-            sentenceBZh: '是的，她是我们的汉语老师。',
-            sentenceBPy: 'shì de , tā shì wǒ men de hàn yǔ lǎo shī .',
-            sentenceBKo: '네, 그녀는 우리 중국어 선생님이세요.',
-            sentenceTip: "중국어에서는 성(姓) 뒤에 직함 '老师'를 붙여 부릅니다 (예: 王老师)."
-          },
-          {
-            word: '中国',
-            pinyin: 'zhōng guó',
-            meaning: '중국',
-            pos: '고유명사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '你去过中国北京吗？',
-            sentencePy: 'nǐ qù guo zhōng guó běi jīng ma ?',
-            sentenceKo: '당신은 중국 베이징에 가본 적이 있나요?',
-            sentenceBZh: '去过，中国有很多名胜古迹。',
-            sentenceBPy: 'qù guo , zhōng guó yǒu hěn duō míng shèng gǔ jì .',
-            sentenceBKo: '가봤어요, 중국에는 명승고적이 아주 많아요.',
-            sentenceTip: "동사 뒤에 경험을 나타내는 동태조사 '过'를 결합하는 구문입니다."
-          },
-          {
-            word: '朋友',
-            pinyin: 'péng you',
-            meaning: '친구',
-            pos: '명사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '他是你的好朋友吗？',
-            sentencePy: 'tā shì nǐ de hǎo péng you ma ?',
-            sentenceKo: '그는 당신의 친한 친구인가요?',
-            sentenceBZh: '对，我们是从小一起长大的好朋友。',
-            sentenceBPy: 'duì , wǒ men shì cóng xiǎo yì qǐ zhǎng dà de hǎo péng you .',
-            sentenceBKo: '맞아요, 우리는 어릴 적부터 함께 자란 절친이에요.',
-            sentenceTip: "'好朋友'는 친한 친구를 의미하며, 소유격 '的'를 생략하기도 합니다."
-          }
-        ]
-      },
-      {
-        unitId: 'unit-3',
-        unitName: '제3과: 일상과 취향',
-        unitDesc: '일상 감정과 기호 표현',
-        words: [
-          {
-            word: '喜欢',
-            pinyin: 'xǐ huan',
-            meaning: '좋아하다 / 마음에 들다',
-            pos: '동사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '你喜欢吃中国菜吗？',
-            sentencePy: 'nǐ xǐ huan chī zhōng guó cài ma ?',
-            sentenceKo: '당신은 중국 음식 먹는 것을 좋아하나요?',
-            sentenceBZh: '我很喜欢，尤其是麻婆豆腐。',
-            sentenceBPy: 'wǒ hěn xǐ huan , yóu qí shì má pó dòu fu .',
-            sentenceBKo: '매우 좋아해요, 특히 마파두부를 좋아합니다.',
-            sentenceTip: "심리동사 '喜欢' 뒤에 동사구(吃中国菜)가 목적어로 올 수 있습니다."
-          },
-          {
-            word: '喝水',
-            pinyin: 'hē shuǐ',
-            meaning: '물을 마시다',
-            pos: '동목구 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '你渴了吗？喝水吧。',
-            sentencePy: 'nǐ kě le ma ? hē shuǐ ba .',
-            sentenceKo: '목마르세요? 물 좀 드세요.',
-            sentenceBZh: '好的，谢谢，正好有点渴。',
-            sentenceBPy: 'hǎo de , xiè xie , zhèng hǎo yǒu diǎn kě .',
-            sentenceBKo: '네, 고마워요, 마침 목이 좀 말랐어요.',
-            sentenceTip: "문장 끝의 어기조사 '吧'는 권유, 청유를 부드럽게 나타냅니다."
-          },
-          {
-            word: '快乐',
-            pinyin: 'kuài lè',
-            meaning: '즐겁다 / 행복하다',
-            pos: '형용사 (HSK 1급)',
-            level: '기초 1급',
-            sentenceZh: '祝你生日快乐！',
-            sentencePy: 'zhù nǐ shēng rì kuài lè !',
-            sentenceKo: '생일 축하해요!',
-            sentenceBZh: '谢谢！今天我真的很开心快乐。',
-            sentenceBPy: 'xiè xie ! jīn tiān wǒ zhēn de hěn kāi xīn kuài lè .',
-            sentenceBKo: '고마워요! 오늘 정말 즐겁고 기뻐요.',
-            sentenceTip: "축하 문구는 보통 '祝你 + [행사/명절] + 快乐' 공식을 사용합니다."
-          }
-        ]
-      }
-    ];
-
-    // In-page Toast Utility
-    let toastTimer = null;
-    function showToast(msg, icon = 'ℹ️') {
-      const banner = document.getElementById('toast-banner');
-      const msgEl = document.getElementById('toast-msg');
-      const iconEl = document.getElementById('toast-icon');
-      msgEl.textContent = msg;
-      iconEl.textContent = icon;
-
-      banner.classList.remove('translate-y-[-100px]', 'opacity-0');
-      banner.classList.add('translate-y-0', 'opacity-100');
-
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        banner.classList.remove('translate-y-0', 'opacity-100');
-        banner.classList.add('translate-y-[-100px]', 'opacity-0');
-      }, 3000);
-    }
-
-    // In-page Confirm Utility
-    let confirmCallback = null;
-    function showConfirmModal(title, msg, onConfirm) {
-      document.getElementById('confirm-title').textContent = title;
-      document.getElementById('confirm-msg').textContent = msg;
-      confirmCallback = onConfirm;
-      document.getElementById('confirm-modal').classList.remove('hidden');
-    }
-
-    document.getElementById('confirm-cancel-btn').addEventListener('click', () => {
-      document.getElementById('confirm-modal').classList.add('hidden');
-      confirmCallback = null;
-    });
-
-    document.getElementById('confirm-ok-btn').addEventListener('click', () => {
-      document.getElementById('confirm-modal').classList.add('hidden');
-      if (confirmCallback) {
-        confirmCallback();
-        confirmCallback = null;
-      }
-    });
-
-    // Load curriculum from localStorage or fallback
-    // Global Config for Permanent GitHub Pages Sync
-    const CONFIG = {
-      // 교수님이 여기에 구글 시트 CSV 링크를 한 줄 넣어두시면, 모든 학생이 접속 시 자동으로 이 시트를 읽어옵니다.
-      googleSheetCsvUrl: ''
-    };
-
-    function normalizeGoogleSheetUrl(url) {
-      if (!url) return '';
-      url = url.trim();
-      if (url.includes('output=csv') || url.includes('format=csv')) {
-        return url;
-      }
-      const match = url.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-      if (match) {
-        const sheetId = match[1];
-        const gidMatch = url.match(/[#&?]gid=([0-9]+)/);
-        const gidParam = gidMatch ? `&gid=${gidMatch[1]}` : '';
-        return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv${gidParam}`;
-      }
-      return url;
-    }
-    let CURRICULUM = [];
-    function loadStoredCurriculum() {
-      try {
-        const saved = localStorage.getItem('user_chinese_curriculum');
-        if (saved) {
-          CURRICULUM = JSON.parse(saved);
-          if (!Array.isArray(CURRICULUM) || CURRICULUM.length === 0) {
-            CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
-          }
-        } else {
-          CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
-        }
-      } catch (e) {
-        console.warn(e);
-        CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
-      }
-    }
-
-    function saveCurriculum() {
-      try {
-        localStorage.setItem('user_chinese_curriculum', JSON.stringify(CURRICULUM));
-      } catch (e) {
-        console.warn(e);
-      }
-    }
-
-    // State Variables
-    let currentUnitIndex = 0;
-    let currentWordObj = null;
-    let currentCharIndex = 0;
-    let writer = null;
-    let isGridOn = true;
-    let isOutlineOn = true;
-    let totalStrokes = 0;
-
-    // DOM Elements
-    const unitTabs = document.getElementById('unit-tabs');
-    const wordPillsContainer = document.getElementById('word-pills-container');
-    const currentUnitDesc = document.getElementById('current-unit-desc');
-    const writingTargetWord = document.getElementById('writing-target-word');
-    const wordCharProgress = document.getElementById('word-char-progress');
-    const charStepsContainer = document.getElementById('char-steps-container');
-
-    const targetDiv = document.getElementById('character-target-div');
-    const mizigeBox = document.getElementById('mizige-box');
-    const statusBox = document.getElementById('status-box');
-    const strokeCounter = document.getElementById('stroke-counter');
-
-    // Google Sheets Sync DOM Elements
-    const googleSheetModal = document.getElementById('google-sheet-modal');
-    const googleSheetUrlInput = document.getElementById('google-sheet-url-input');
-    const syncStatusIndicator = document.getElementById('sync-status-indicator');
-    const disconnectSheetBtn = document.getElementById('disconnect-sheet-btn');
-    const shareLinkBox = document.getElementById('share-link-box');
-    const shareUrlDisplay = document.getElementById('share-url-display');
-    const copyShareUrlBtn = document.getElementById('copy-share-url-btn');
-    const modeBadge = document.getElementById('mode-badge');
-
-    const vocabWord = document.getElementById('vocab-word');
-    const vocabPinyin = document.getElementById('vocab-pinyin');
-    const vocabMeaning = document.getElementById('vocab-meaning');
-    const wordBadge = document.getElementById('word-badge');
-    const wordPos = document.getElementById('word-pos');
-    const currentCharInfo = document.getElementById('current-char-info');
-
-        const sentenceZh = document.getElementById('sentence-zh');
-    const sentencePy = document.getElementById('sentence-py');
-    const sentenceKo = document.getElementById('sentence-ko');
-    const sentenceBZh = document.getElementById('sentence-b-zh');
-    const sentenceBPy = document.getElementById('sentence-b-py');
-    const sentenceBKo = document.getElementById('sentence-b-ko');
-    const dialogueBBox = document.getElementById('dialogue-b-box');
-    const sentenceTip = document.getElementById('sentence-tip');
-
-    const spreadsheetModal = document.getElementById('spreadsheet-modal');
-    const addUnitModal = document.getElementById('add-unit-modal');
-    const addWordModal = document.getElementById('add-word-modal');
-    const exportModal = document.getElementById('export-modal');
-    const exportJsonTextarea = document.getElementById('export-json-textarea');
-
-    const successModal = document.getElementById('success-modal');
-    const modalCard = document.getElementById('modal-card');
-    const modalTitle = document.getElementById('modal-title');
-    const modalChar = document.getElementById('modal-char');
-    const modalMistakes = document.getElementById('modal-mistakes');
-    const modalStats = document.getElementById('modal-stats');
-    const modalNextBtn = document.getElementById('modal-next-btn');
-
-        // Speech synthesis function
-    function speakChinese(text, onEndCallback) {
-      if (!('speechSynthesis' in window)) {
-        showToast('이 브라우저는 음성 합성(TTS)을 지원하지 않습니다.', '⚠️');
-        if (onEndCallback) onEndCallback();
-        return;
-      }
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'zh-CN';
-        utterance.rate = 0.85;
-        if (onEndCallback) {
-          utterance.onend = onEndCallback;
-          utterance.onerror = onEndCallback;
-        }
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
-        console.warn(e);
-        if (onEndCallback) onEndCallback();
-      }
-    }
-
-    // Render Unit Tabs with individual delete buttons
-    function renderUnitTabs() {
-      unitTabs.innerHTML = '';
-      CURRICULUM.forEach((unit, idx) => {
-        const tabWrapper = document.createElement('div');
-        const isActive = idx === currentUnitIndex;
-        tabWrapper.className = `flex items-center rounded-xl transition shrink-0 ${
-          isActive 
-            ? 'bg-slate-900 text-white shadow-sm' 
-            : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-        }`;
-
-        const btn = document.createElement('button');
-        btn.className = 'px-3 py-1.5 text-xs font-bold';
-        btn.textContent = unit.unitName;
-        btn.addEventListener('click', () => {
-          currentUnitIndex = idx;
-          renderUnitTabs();
-          renderWordPills();
-          selectWord(CURRICULUM[idx].words[0]);
-        });
-        tabWrapper.appendChild(btn);
-
-        // Add 'x' delete button on each tab if more than 1 unit exists
-        if (CURRICULUM.length > 1) {
-          const closeBtn = document.createElement('button');
-          closeBtn.className = `px-1.5 py-1.5 text-[10px] opacity-60 hover:opacity-100 transition rounded-r-xl ${
-            isActive ? 'text-white hover:bg-slate-800' : 'text-slate-400 hover:text-rose-600'
-          }`;
-          closeBtn.innerHTML = '✕';
-          closeBtn.title = `'${unit.unitName}' 단원 삭제`;
-          closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            performDeleteUnit(idx);
-          });
-          tabWrapper.appendChild(closeBtn);
-        }
-
-        unitTabs.appendChild(tabWrapper);
-      });
-    }
-
-    // Common Unit Deletion Logic
-    function performDeleteUnit(idxToDelete) {
-      if (CURRICULUM.length <= 1) {
-        showToast('워크북에 최소 1개 이상의 단원이 있어야 합니다.', '⚠️');
-        return;
-      }
-      const unit = CURRICULUM[idxToDelete];
-      showConfirmModal('단원 삭제 확인', `'${unit.unitName}' 단원을 정말로 삭제하시겠습니까? (포함된 단어들도 함께 삭제됩니다)`, () => {
-        const deletedName = unit.unitName;
-        CURRICULUM.splice(idxToDelete, 1);
-        if (currentUnitIndex >= CURRICULUM.length) {
-          currentUnitIndex = CURRICULUM.length - 1;
-        }
-        saveCurriculum();
-        renderUnitTabs();
-        renderWordPills();
-        selectWord(CURRICULUM[currentUnitIndex].words[0]);
-        showToast(`'${deletedName}' 단원이 완전히 삭제되었습니다.`, '🗑️');
-      });
-    }
-
-    // Render Word Pills for Current Unit
-    function renderWordPills() {
-      if (!CURRICULUM[currentUnitIndex]) {
-        currentUnitIndex = 0;
-      }
-      const unit = CURRICULUM[currentUnitIndex];
-      currentUnitDesc.textContent = unit ? unit.unitDesc : '';
-      wordPillsContainer.innerHTML = '';
-
-      if (!unit || !unit.words || unit.words.length === 0) {
-        wordPillsContainer.innerHTML = '<span class="text-xs text-slate-400">등록된 어휘가 없습니다. [➕ 새 어휘 추가] 버튼을 눌러 추가하세요.</span>';
-        return;
-      }
-
-      unit.words.forEach((item, wIdx) => {
-        const pillGroup = document.createElement('div');
-        const isSelected = currentWordObj && item.word === currentWordObj.word;
-        pillGroup.className = `flex items-center rounded-xl transition ${
-          isSelected 
-            ? 'bg-indigo-600 text-white shadow-sm' 
-            : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
-        }`;
-
-        const btn = document.createElement('button');
-        btn.className = 'px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5';
-        btn.innerHTML = `<span class="text-sm font-serif font-bold">${item.word}</span> <span class="text-[11px] opacity-80">(${item.meaning})</span>`;
-        btn.addEventListener('click', () => {
-          selectWord(item);
-        });
-        pillGroup.appendChild(btn);
-
-        // Word delete button
-        const delBtn = document.createElement('button');
-        delBtn.className = `px-1.5 py-1.5 text-[10px] opacity-60 hover:opacity-100 transition rounded-r-xl ${isSelected ? 'text-white hover:bg-indigo-700' : 'text-slate-500 hover:text-rose-600'}`;
-        delBtn.innerHTML = '✕';
-        delBtn.title = `'${item.word}' 단어 삭제`;
-        delBtn.addEventListener('click', (e) => {
-          e.stopPropagation();
-          deleteWord(wIdx);
-        });
-        pillGroup.appendChild(delBtn);
-
-        wordPillsContainer.appendChild(pillGroup);
-      });
-    }
-
-    // Delete a word from current unit
-    function deleteWord(wIdx) {
-      const unit = CURRICULUM[currentUnitIndex];
-      if (unit && unit.words.length > 1) {
-        const targetWord = unit.words[wIdx].word;
-        showConfirmModal('단어 삭제', `'${targetWord}' 어휘를 단원에서 삭제하시겠습니까?`, () => {
-          unit.words.splice(wIdx, 1);
-          saveCurriculum();
-          renderWordPills();
-          selectWord(unit.words[0]);
-          showToast(`'${targetWord}' 단어가 삭제되었습니다.`, '🗑️');
-        });
-      } else {
-        showToast('단원에는 최소 1개 이상의 어휘가 유지되어야 합니다.', '⚠️');
-      }
-    }
-
-    // Select a Word
-    function selectWord(wordObj) {
-      if (!wordObj) return;
-      currentWordObj = wordObj;
-      currentCharIndex = 0;
-      renderWordPills();
-      updateVocabAndSentenceCards(wordObj);
-      renderCharSteps();
-      loadActiveCharacter();
-    }
-
-        // Update Right-Hand Information Cards
-    function updateVocabAndSentenceCards(wordObj) {
-      vocabWord.textContent = wordObj.word;
-      vocabPinyin.textContent = wordObj.pinyin;
-      vocabMeaning.textContent = wordObj.meaning;
-      wordBadge.textContent = wordObj.level || '어휘';
-      wordPos.textContent = wordObj.pos || '';
-
-      sentenceZh.textContent = wordObj.sentenceZh || '';
-      sentencePy.textContent = wordObj.sentencePy || '';
-      sentenceKo.textContent = wordObj.sentenceKo || '';
-      sentenceTip.textContent = wordObj.sentenceTip || '선택한 어휘가 쓰인 대표 대화 예문입니다.';
-
-      if (dialogueBBox && sentenceBZh) {
-        if (wordObj.sentenceBZh && wordObj.sentenceBZh.trim()) {
-          dialogueBBox.classList.remove('hidden');
-          sentenceBZh.textContent = wordObj.sentenceBZh;
-          sentenceBPy.textContent = wordObj.sentenceBPy || '';
-          sentenceBKo.textContent = wordObj.sentenceBKo || '';
-        } else {
-          dialogueBBox.classList.add('hidden');
-          sentenceBZh.textContent = '';
-          sentenceBPy.textContent = '';
-          sentenceBKo.textContent = '';
-        }
-      }
-    }
-
-    // Render Character Steps for the current word
-    function renderCharSteps() {
-      if (!currentWordObj) return;
-      const chars = Array.from(currentWordObj.word);
-      charStepsContainer.innerHTML = '';
-      writingTargetWord.textContent = currentWordObj.word;
-      wordCharProgress.textContent = `글자 ${currentCharIndex + 1} / ${chars.length}`;
-
-      chars.forEach((c, idx) => {
-        const stepBtn = document.createElement('button');
-        const isActive = idx === currentCharIndex;
-        stepBtn.className = `flex-1 py-1.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 ${
-          isActive 
-            ? 'bg-white text-indigo-700 shadow-sm border border-slate-200' 
-            : 'text-slate-500 hover:text-slate-800'
-        }`;
-        stepBtn.innerHTML = `<span>${idx + 1}단계:</span> <span class="font-serif text-sm">${c}</span>`;
-        stepBtn.addEventListener('click', () => {
-          currentCharIndex = idx;
-          renderCharSteps();
-          loadActiveCharacter();
-        });
-        charStepsContainer.appendChild(stepBtn);
-      });
-    }
-
-    function setStatus(text, type = 'normal') {
-      statusBox.textContent = text;
-      statusBox.className = 'mt-3 w-full py-2.5 px-3 rounded-xl border text-center text-xs font-medium transition-all duration-200 min-h-[42px] flex items-center justify-center ';
-      if (type === 'error') {
-        statusBox.className += 'bg-rose-50 border-rose-200 text-rose-700 animate-pulse';
-      } else if (type === 'success') {
-        statusBox.className += 'bg-emerald-50 border-emerald-200 text-emerald-700';
-      } else if (type === 'complete') {
-        statusBox.className += 'bg-indigo-50 border-indigo-200 text-indigo-700 font-bold';
-      } else {
-        statusBox.className += 'bg-slate-50 border-slate-200 text-slate-600';
-      }
-    }
-
-    // Load active character in HanziWriter
-    function loadActiveCharacter() {
-      if (!currentWordObj) return;
-      const chars = Array.from(currentWordObj.word);
-      const charToDraw = chars[currentCharIndex] || chars[0];
-
-      targetDiv.innerHTML = '';
-      modeBadge.textContent = '✍️ 직접 쓰기 퀴즈';
-      modeBadge.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold';
-
-      currentCharInfo.textContent = `${charToDraw} (로딩 중...)`;
-
-      try {
-        writer = HanziWriter.create('character-target-div', charToDraw, {
-          width: 250,
-          height: 250,
-          padding: 15,
-          showOutline: isOutlineOn,
-          strokeAnimationSpeed: 1,
-          delayBetweenStrokes: 180,
-          strokeColor: '#1e293b',
-          outlineColor: '#cbd5e1',
-          drawingColor: '#2563eb',
-          drawingWidth: 22,
-          showCharacter: false,
-          onLoadCharDataSuccess: function(charData) {
-            totalStrokes = charData.strokes.length;
-            strokeCounter.textContent = `총 ${totalStrokes}획`;
-            currentCharInfo.textContent = `${charToDraw} (${totalStrokes}획)`;
-            startQuiz();
-          },
-          onLoadCharDataError: function() {
-            setStatus(`⚠️ '${charToDraw}'의 획순 데이터를 불러올 수 없습니다.`, 'error');
-            strokeCounter.textContent = '데이터 없음';
-          }
-        });
-      } catch (e) {
-        console.error(e);
-        setStatus('Hanzi Writer 초기화 중 오류가 발생했습니다.', 'error');
-      }
-    }
-
-    function startQuiz() {
-      if (!writer) return;
-      modeBadge.textContent = '✍️ 직접 쓰기 퀴즈';
-      modeBadge.className = 'px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-xs font-semibold';
-      setStatus('격자 안에서 획순에 맞게 첫 번째 획을 그어보세요.');
-
-      writer.quiz({
-        showHintAfterMisses: 2,
-        onMistake: function(strokeData) {
-          setStatus(`⚠️ 획순이나 방향이 틀렸습니다! (틀린 횟수: ${strokeData.mistakesOnStroke}회)`, 'error');
-        },
-        onCorrectStroke: function(strokeData) {
-          const current = strokeData.strokeNum + 1;
-          const total = strokeData.totalStrokes || totalStrokes;
-          strokeCounter.textContent = `진행: ${current} / ${total}획`;
-          setStatus(`✨ 훌륭합니다! 올바른 획입니다. (${current}/${total}획 완료)`, 'success');
-        },
-        onComplete: function(summaryData) {
-          const chars = Array.from(currentWordObj.word);
-          const isLastChar = currentCharIndex >= chars.length - 1;
-          const currentChar = chars[currentCharIndex];
-
-          speakChinese(currentChar);
-
-          if (isLastChar) {
-            setStatus(`🎉 단어 '${currentWordObj.word}'의 모든 글자를 완벽하게 완성했습니다!`, 'complete');
-            setTimeout(() => {
-              speakChinese(currentWordObj.word);
-            }, 600);
-            openSuccessModal(summaryData.totalMistakes, true);
-          } else {
-            setStatus(`✨ '${currentChar}' 완성! 다음 글자로 넘어갑니다.`, 'complete');
-            openSuccessModal(summaryData.totalMistakes, false);
-          }
-        }
-      });
-    }
-
-    function openSuccessModal(mistakes, isWordCompleted) {
-      const chars = Array.from(currentWordObj.word);
-      const currentChar = chars[currentCharIndex];
-
-      modalChar.textContent = currentChar;
-      modalMistakes.textContent = `${mistakes}회`;
-
-      if (isWordCompleted) {
-        modalTitle.textContent = `단어 '${currentWordObj.word}' 완성! 🎉`;
-        modalStats.textContent = `단어 '${currentWordObj.word} (${currentWordObj.meaning})'의 모든 글자를 성공적으로 마쳤습니다!`;
-        modalNextBtn.textContent = '다음 어휘로 이동 ▶';
-      } else {
-        modalTitle.textContent = `'${currentChar}' 글자 완성! 👏`;
-        modalStats.textContent = `다음 글자 '${chars[currentCharIndex + 1]}' 쓰기로 이어집니다.`;
-        modalNextBtn.textContent = '다음 글자 쓰기 ▶';
-      }
-
-      successModal.classList.remove('hidden');
-      setTimeout(() => {
-        modalCard.classList.remove('scale-95', 'opacity-0');
-        modalCard.classList.add('scale-100', 'opacity-100');
-      }, 10);
-    }
-
-    function closeSuccessModal() {
-      modalCard.classList.remove('scale-100', 'opacity-100');
-      modalCard.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        successModal.classList.add('hidden');
-      }, 200);
-    }
-
-    // Preset theme auto-fill helper
-    document.querySelectorAll('.preset-theme-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.getElementById('new-unit-name').value = btn.dataset.name;
-        document.getElementById('new-unit-desc').value = btn.dataset.desc;
-        document.getElementById('new-unit-word').value = btn.dataset.word;
-        document.getElementById('new-unit-pinyin').value = btn.dataset.pinyin;
-        document.getElementById('new-unit-mean').value = btn.dataset.mean;
-        document.getElementById('new-unit-zh').value = btn.dataset.zh;
-        document.getElementById('new-unit-ko').value = btn.dataset.ko;
-        showToast(`'${btn.dataset.name}' 추천 프리셋이 입력되었습니다.`, '✨');
-      });
-    });
-
-    // Add Unit Modal Handlers
-    document.getElementById('open-add-unit-modal-btn').addEventListener('click', () => {
-      const nextNum = CURRICULUM.length + 1;
-      document.getElementById('new-unit-name').value = `제${nextNum}과: 새로운 주제`;
-      document.getElementById('new-unit-desc').value = '새로운 단원 설명';
-      document.getElementById('new-unit-word').value = '';
-      document.getElementById('new-unit-pinyin').value = '';
-      document.getElementById('new-unit-mean').value = '';
-      document.getElementById('new-unit-zh').value = '';
-      document.getElementById('new-unit-ko').value = '';
-      addUnitModal.classList.remove('hidden');
-    });
-
-    document.getElementById('close-unit-modal-btn').addEventListener('click', () => {
-      addUnitModal.classList.add('hidden');
-    });
-    document.getElementById('cancel-unit-btn').addEventListener('click', () => {
-      addUnitModal.classList.add('hidden');
-    });
-
-    document.getElementById('submit-unit-btn').addEventListener('click', () => {
-      const name = document.getElementById('new-unit-name').value.trim();
-      const desc = document.getElementById('new-unit-desc').value.trim() || '단원 설명';
-      const word = document.getElementById('new-unit-word').value.trim() || '你好';
-      const pinyin = document.getElementById('new-unit-pinyin').value.trim() || 'nǐ hǎo';
-      const mean = document.getElementById('new-unit-mean').value.trim() || '안녕하세요';
-      const zh = document.getElementById('new-unit-zh').value.trim() || `${word}！`;
-      const ko = document.getElementById('new-unit-ko').value.trim() || `${mean}!`;
-
-      if (!name) {
-        showToast('단원 이름을 입력해주세요.', '⚠️');
-        return;
-      }
-
-      const newUnit = {
-        unitId: `unit-${Date.now()}`,
-        unitName: name,
-        unitDesc: desc,
-        words: [
-          {
-            word: word,
-            pinyin: pinyin,
-            meaning: mean,
-            pos: '어휘',
-            level: '기초',
-            sentenceZh: zh,
-            sentencePy: pinyin,
-            sentenceKo: ko,
-            sentenceTip: '새롭게 추가된 단원의 예문입니다.'
-          }
-        ]
-      };
-
-      CURRICULUM.push(newUnit);
-      saveCurriculum();
-      currentUnitIndex = CURRICULUM.length - 1;
-      addUnitModal.classList.add('hidden');
-      renderUnitTabs();
-      renderWordPills();
-      selectWord(newUnit.words[0]);
-      showToast(`'${name}' 단원이 성공적으로 추가되었습니다!`, '🎉');
-    });
-
-    // Delete Current Unit from Top Red Button
-    document.getElementById('delete-unit-top-btn').addEventListener('click', () => {
-      performDeleteUnit(currentUnitIndex);
-    });
-    document.getElementById('delete-current-unit-btn').addEventListener('click', () => {
-      performDeleteUnit(currentUnitIndex);
-    });
-
-    // Add Word Modal Handlers
-        document.getElementById('open-add-word-modal-btn').addEventListener('click', () => {
-      if (!CURRICULUM[currentUnitIndex]) return;
-      document.getElementById('modal-target-unit-name').textContent = CURRICULUM[currentUnitIndex].unitName;
-      document.getElementById('add-word-input').value = '';
-      document.getElementById('add-pinyin-input').value = '';
-      document.getElementById('add-pos-input').value = '';
-      document.getElementById('add-mean-input').value = '';
-      document.getElementById('add-sentence-zh').value = '';
-      document.getElementById('add-sentence-py').value = '';
-      document.getElementById('add-sentence-ko').value = '';
-      const bZhIn = document.getElementById('add-sentence-b-zh');
-      if (bZhIn) bZhIn.value = '';
-      const bPyIn = document.getElementById('add-sentence-b-py');
-      if (bPyIn) bPyIn.value = '';
-      const bKoIn = document.getElementById('add-sentence-b-ko');
-      if (bKoIn) bKoIn.value = '';
-      addWordModal.classList.remove('hidden');
-    });
-
-    document.getElementById('close-word-modal-btn').addEventListener('click', () => {
-      addWordModal.classList.add('hidden');
-    });
-    document.getElementById('cancel-word-btn').addEventListener('click', () => {
-      addWordModal.classList.add('hidden');
-    });
-
-    document.getElementById('submit-word-btn').addEventListener('click', () => {
-      const word = document.getElementById('add-word-input').value.trim();
-      const pinyin = document.getElementById('add-pinyin-input').value.trim();
-      const pos = document.getElementById('add-pos-input').value.trim() || '어휘';
-      const mean = document.getElementById('add-mean-input').value.trim();
-      const zh = document.getElementById('add-sentence-zh').value.trim() || `${word}。`;
-      const py = document.getElementById('add-sentence-py').value.trim() || pinyin;
-      const ko = document.getElementById('add-sentence-ko').value.trim() || mean;
-
-      if (!word || !mean) {
-        showToast('단어와 한국어 뜻을 입력해주세요.', '⚠️');
-        return;
-      }
-
-      const newWordObj = {
-        word: word,
-        pinyin: pinyin || word,
-        meaning: mean,
-        pos: pos,
-        level: '신규 어휘',
-        sentenceZh: zh,
-        sentencePy: py,
-        sentenceKo: ko,
-        sentenceTip: `${word}의 예문 학습입니다.`
-      };
-
-      CURRICULUM[currentUnitIndex].words.push(newWordObj);
-      saveCurriculum();
-      addWordModal.classList.add('hidden');
-      renderWordPills();
-      selectWord(newWordObj);
-      showToast(`'${word}' 단어가 추가되었습니다!`, '✨');
-    });
-
-    // Spreadsheet Upload & Parsing Logic
-    document.getElementById('open-spreadsheet-modal-btn').addEventListener('click', () => {
-      spreadsheetModal.classList.remove('hidden');
-    });
-
-    document.getElementById('close-spreadsheet-modal-btn').addEventListener('click', () => {
-      spreadsheetModal.classList.add('hidden');
-    });
-
-    document.getElementById('cancel-spreadsheet-modal-btn').addEventListener('click', () => {
-      spreadsheetModal.classList.add('hidden');
-    });
-
-    // File Browse / Drop handlers
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('spreadsheet-file-input');
-    const browseFileBtn = document.getElementById('browse-file-btn');
-
-    browseFileBtn.addEventListener('click', () => {
-      fileInput.click();
-    });
-
-    dropZone.addEventListener('click', (e) => {
-      if (e.target !== browseFileBtn) {
-        fileInput.click();
-      }
-    });
-
-    dropZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      dropZone.classList.add('border-indigo-500', 'bg-indigo-50/50');
-    });
-
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
-      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-        handleSpreadsheetFile(e.dataTransfer.files[0]);
-      }
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      if (e.target.files && e.target.files.length > 0) {
-        handleSpreadsheetFile(e.target.files[0]);
-      }
-    });
-
-    // Process Spreadsheet File (Excel .xlsx or CSV)
-    function handleSpreadsheetFile(file) {
-      const fileName = file.name;
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
-
-          if (!rows || rows.length === 0) {
-            showToast('파일에 데이터 행이 비어 있습니다.', '⚠️');
-            return;
-          }
-
-          parseSpreadsheetRows(rows);
-          spreadsheetModal.classList.add('hidden');
-        } catch (err) {
-          console.error(err);
-          showToast('엑셀 파일을 읽는 중 오류가 발생했습니다.', '⚠️');
-        }
-      };
-
-      reader.readAsArrayBuffer(file);
-    }
-
-        // Parse extracted JSON rows into CURRICULUM structure
-    function parseSpreadsheetRows(rows) {
-      const unitMap = new Map();
-
-      rows.forEach((r, idx) => {
-        const unitName = (r['단원명'] || r['단원'] || r['과'] || r['unit'] || r['Unit'] || `제${idx + 1}과`).toString().trim();
-        const unitDesc = (r['단원설명'] || r['설명'] || r['desc'] || `${unitName} 어휘 학습`).toString().trim();
-
-        const word = (r['단어'] || r['한자'] || r['word'] || r['Word'] || '').toString().trim();
-        const pinyin = (r['병음'] || r['pinyin'] || r['Pinyin'] || word).toString().trim();
-        const meaning = (r['한국어뜻'] || r['뜻'] || r['meaning'] || r['의미'] || '').toString().trim();
-        const pos = (r['품사'] || r['pos'] || '어휘').toString().trim();
-
-        const zh = (r['예문A'] || r['예문'] || r['중국어예문'] || r['sentenceZh'] || `${word}。`).toString().trim();
-        const py = (r['예문A병음'] || r['예문병음'] || r['sentencePy'] || pinyin).toString().trim();
-        const ko = (r['예문A번역'] || r['예문번역'] || r['예문해석'] || r['sentenceKo'] || meaning).toString().trim();
-
-        const bZh = (r['대화B'] || r['대화B중국어'] || r['응답문장'] || r['sentenceBZh'] || '').toString().trim();
-        const bPy = (r['대화B병음'] || r['응답병음'] || r['sentenceBPy'] || '').toString().trim();
-        const bKo = (r['대화B번역'] || r['대화B해석'] || r['응답번역'] || r['sentenceBKo'] || '').toString().trim();
-
-        const tip = (r['문법팁'] || r['팁'] || r['sentenceTip'] || `${word}의 대화 예문입니다.`).toString().trim();
-
-        if (!word) return;
-
-        if (!unitMap.has(unitName)) {
-          unitMap.set(unitName, {
-            unitId: `unit-${Date.now()}-${unitMap.size}`,
-            unitName: unitName,
-            unitDesc: unitDesc,
-            words: []
-          });
-        }
-
-        unitMap.get(unitName).words.push({
-          word: word,
-          pinyin: pinyin,
-          meaning: meaning || '뜻 미기입',
-          pos: pos,
-          level: '시트 업로드',
-          sentenceZh: zh,
-          sentencePy: py,
-          sentenceKo: ko,
-          sentenceBZh: bZh,
-          sentenceBPy: bPy,
-          sentenceBKo: bKo,
-          sentenceTip: tip
-        });
-      });
-
-      if (unitMap.size === 0) {
-        showToast('인식 가능한 단어 열을 찾지 못했습니다. 양식을 확인해주세요.', '⚠️');
-        return;
-      }
-
-      const parsedUnits = Array.from(unitMap.values());
-      CURRICULUM = parsedUnits;
-      saveCurriculum();
-
-      currentUnitIndex = 0;
-      renderUnitTabs();
-      renderWordPills();
-      selectWord(CURRICULUM[0].words[0]);
-
-      let totalWordCount = 0;
-      parsedUnits.forEach(u => totalWordCount += u.words.length);
-      showToast(`총 ${parsedUnits.length}개 단원, ${totalWordCount}개 어휘가 등록되었습니다!`, '🎉');
-    }
-
-        // Download Excel template
-    document.getElementById('download-template-btn').addEventListener('click', () => {
-      const templateData = [
-        ['단원명', '단원설명', '단어', '병음', '한국어뜻', '품사', '예문A', '예문A병음', '예문A번역', '대화B', '대화B병음', '대화B번역', '문법팁'],
-        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '你好', 'nǐ hǎo', '안녕하세요', '인사말', '王老师，您好！', 'Wáng lǎoshī, nín hǎo !', '왕 선생님, 안녕하세요!', '你好！今天学习怎么样？', 'Nǐ hǎo ! Jīn tiān xué xí zěn me yàng ?', '안녕하세요! 오늘 공부는 어때요?', "호칭 뒤에 '你好'를 붙여 인사합니다."],
-        ['제1과: 만남과 인사', '기본 인사말과 호칭 어휘', '谢谢', 'xiè xie', '감사합니다', '인사말', '谢谢你的帮助。', 'xiè xie nǐ de bāng zhù .', '도와주셔서 감사합니다.', '不客气，这是我应该做的。', 'bú kè qi , zhè shì wǒ yīng gāi zuò de .', '천만에요, 당연히 해야 할 일인걸요.', "감사의 표현과 화답 대화입니다."],
-        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '米饭', 'mǐ fàn', '밥 / 쌀밥', '명사', '我想吃米饭。', 'wǒ xiǎng chī mǐ fàn .', '저는 밥을 먹고 싶습니다.', '好的，请稍等，马上为您上菜。', 'hǎo de , qǐng shāo děng , mǎ shàng wèi nǐ shàng cài .', '네, 잠시만 기다려주세요, 곧 준비해 드리겠습니다.', "동사 앞에 '想'을 붙여 소망을 나타냅니다."],
-        ['제2과: 식당과 주문', '식사 주문 및 맛 표현 어휘', '好吃', 'hǎo chī', '맛있다', '형용사', '饺子很好吃。', 'jiǎo zi hěn hǎo chī .', '만두가 매우 맛있습니다.', '喜欢就多吃点儿吧！', 'xǐ huan jiù duō chī diǎnr ba !', '마음에 드시면 많이 드세요!', "음식 맛을 칭찬할 때의 문답입니다."]
-      ];
-      const ws = XLSX.utils.aoa_to_sheet(templateData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, '중국어단어양식');
-      XLSX.writeFile(wb, '중국어_워크북_단어업로드양식.xlsx');
-      showToast('엑셀 양식 파일이 다운로드되었습니다.', '📥');
-    });
-
-    // Export JSON Modal Handlers
-    document.getElementById('export-json-btn').addEventListener('click', () => {
-      exportJsonTextarea.value = JSON.stringify(CURRICULUM, null, 2);
-      exportModal.classList.remove('hidden');
-    });
-
-    document.getElementById('close-export-modal-btn').addEventListener('click', () => {
-      exportModal.classList.add('hidden');
-    });
-
-    document.getElementById('copy-json-btn').addEventListener('click', () => {
-      exportJsonTextarea.select();
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(exportJsonTextarea.value);
-        } else {
-          document.execCommand('copy');
-        }
-        showToast('커리큘럼 JSON 코드가 복사되었습니다!', '📋');
-      } catch (err) {
-        document.execCommand('copy');
-        showToast('커리큘럼 JSON 코드가 복사되었습니다!', '📋');
-      }
-    });
-
-    // Reset default curriculum
-    document.getElementById('reset-default-btn').addEventListener('click', () => {
-      showConfirmModal('기본값 초기화', '모든 추가/수정된 단원을 삭제하고 초기 3개 기본 단원으로 되돌리시겠습니까?', () => {
-        CURRICULUM = JSON.parse(JSON.stringify(DEFAULT_CURRICULUM));
-        saveCurriculum();
-        currentUnitIndex = 0;
-        renderUnitTabs();
-        renderWordPills();
-        selectWord(CURRICULUM[0].words[0]);
-        showToast('기본 단원으로 초기화되었습니다.', '🔄');
-      });
-    });
-
-    // Event Listeners for canvas controls
-    document.getElementById('animate-btn').addEventListener('click', () => {
-      if (!writer) return;
-      modeBadge.textContent = '▶️ 획순 시연 중';
-      modeBadge.className = 'px-2.5 py-0.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-semibold';
-      setStatus('올바른 획순을 시연하고 있습니다. 눈으로 순서를 익혀보세요.');
-      writer.cancelQuiz();
-      writer.animateCharacter({
-        onComplete: function() {
-          setStatus('시연이 끝났습니다. [✍️ 다시 쓰기] 버튼을 눌러 직접 써보세요.');
-        }
-      });
-    });
-
-    document.getElementById('restart-quiz-btn').addEventListener('click', () => {
-      if (!writer) return;
-      writer.cancelQuiz();
-      startQuiz();
-    });
-
-    document.getElementById('hint-btn').addEventListener('click', () => {
-      if (!writer) return;
-      setStatus('💡 다음으로 써야 할 획을 하이라이트합니다.', 'normal');
-      writer.highlightStroke(0);
-    });
-
-    document.getElementById('toggle-grid-btn').addEventListener('click', () => {
-      isGridOn = !isGridOn;
-      document.getElementById('grid-status-label').textContent = isGridOn ? '켜짐' : '꺼짐';
-      if (isGridOn) {
-        mizigeBox.classList.remove('grid-off');
-      } else {
-        mizigeBox.classList.add('grid-off');
-      }
-    });
-
-    document.getElementById('toggle-outline-btn').addEventListener('click', () => {
-      isOutlineOn = !isOutlineOn;
-      document.getElementById('outline-status-label').textContent = isOutlineOn ? '켜짐' : '꺼짐';
-      loadActiveCharacter();
-    });
-
-        document.getElementById('speak-word-btn').addEventListener('click', () => {
-      if (currentWordObj) speakChinese(currentWordObj.word);
-    });
-
-    document.getElementById('speak-sentence-btn').addEventListener('click', () => {
-      if (!currentWordObj || !currentWordObj.sentenceZh) return;
-      if (currentWordObj.sentenceBZh && currentWordObj.sentenceBZh.trim()) {
-        showToast('화자 A 발음 재생 중...', '🗣️');
-        speakChinese(currentWordObj.sentenceZh, () => {
-          setTimeout(() => {
-            showToast('화자 B 응답 재생 중...', '🗣️');
-            speakChinese(currentWordObj.sentenceBZh);
-          }, 700);
-        });
-      } else {
-        speakChinese(currentWordObj.sentenceZh);
-      }
-    });
-
-    const speakABtn = document.getElementById('speak-a-btn');
-    if (speakABtn) {
-      speakABtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (currentWordObj && currentWordObj.sentenceZh) {
-          speakChinese(currentWordObj.sentenceZh);
-        }
-      });
-    }
-
-    const speakBBtn = document.getElementById('speak-b-btn');
-    if (speakBBtn) {
-      speakBBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (currentWordObj && currentWordObj.sentenceBZh) {
-          speakChinese(currentWordObj.sentenceBZh);
-        }
-      });
-    }
-
-    // Custom Word Input Handler
-    document.getElementById('load-custom-word-btn').addEventListener('click', () => {
-      const input = document.getElementById('custom-word-input');
-      const val = input.value.trim();
-      if (val) {
-        const customObj = {
-          word: val,
-          pinyin: '직접 입력',
-          meaning: '사용자 지정 어휘',
-          pos: '사용자 단어',
-          level: '자유 입력',
-          sentenceZh: `${val}。`,
-          sentencePy: '',
-          sentenceKo: '직접 입력한 어휘 예문입니다.',
-          sentenceTip: '사용자가 직접 입력한 어휘의 글자별 획순 쓰기 모드입니다.'
-        };
-        selectWord(customObj);
-        input.value = '';
-      }
-    });
-
-    document.getElementById('custom-word-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        document.getElementById('load-custom-word-btn').click();
-      }
-    });
-
-    document.getElementById('modal-retry-btn').addEventListener('click', () => {
-      closeSuccessModal();
-      startQuiz();
-    });
-
-    document.getElementById('modal-next-btn').addEventListener('click', () => {
-      closeSuccessModal();
-      if (!currentWordObj) return;
-      const chars = Array.from(currentWordObj.word);
-      if (currentCharIndex < chars.length - 1) {
-        currentCharIndex++;
-        renderCharSteps();
-        loadActiveCharacter();
-      } else {
-        const wordsInUnit = CURRICULUM[currentUnitIndex].words;
-        const currentWordIdx = wordsInUnit.findIndex(w => w.word === currentWordObj.word);
-        if (currentWordIdx !== -1 && currentWordIdx < wordsInUnit.length - 1) {
-          selectWord(wordsInUnit[currentWordIdx + 1]);
-        } else {
-          selectWord(wordsInUnit[0]);
-        }
-      }
-    });
-
-    // Google Sheets Sync Logic
-    function updateSyncModalStatus(activeUrl) {
-      if (activeUrl) {
-        googleSheetUrlInput.value = activeUrl;
-        syncStatusIndicator.textContent = '연동 상태: ✅ 구글 시트 실시간 동기화 활성화됨';
-        syncStatusIndicator.className = 'text-[11px] text-emerald-700 font-bold';
-        disconnectSheetBtn.classList.remove('hidden');
-        shareLinkBox.classList.remove('hidden');
-        const shareUrl = `${window.location.origin}${window.location.pathname}?sheet=${encodeURIComponent(activeUrl)}`;
-        shareUrlDisplay.value = shareUrl;
-      } else {
-        googleSheetUrlInput.value = '';
-        syncStatusIndicator.textContent = '연동 상태: 미연동 (기본 단어장 사용 중)';
-        syncStatusIndicator.className = 'text-[11px] text-slate-500 font-medium';
-        disconnectSheetBtn.classList.add('hidden');
-        shareLinkBox.classList.add('hidden');
-        shareUrlDisplay.value = '';
-      }
-    }
-
-    async function syncGoogleSheet(rawUrl, isManual = true) {
-      const normalizedUrl = normalizeGoogleSheetUrl(rawUrl);
-      if (!normalizedUrl) {
-        if (isManual) showToast('유효한 구글 스프레드시트 링크를 입력해주세요.', '⚠️');
-        return false;
-      }
-
-      if (isManual) showToast('구글 시트에서 최신 데이터를 가져오는 중...', '⏳');
-
-      try {
-        const response = await fetch(normalizedUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const csvText = await response.text();
-        const workbook = XLSX.read(csvText, { type: 'string' });
-        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
-          throw new Error('스프레드시트에 시트가 없습니다.');
-        }
-        const firstSheetName = workbook.SheetNames[0];
-        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheetName]);
-
-        if (!rows || rows.length === 0) {
-          throw new Error('시트에 어휘 데이터가 없거나 열 이름을 인식할 수 없습니다.');
-        }
-
-        parseSpreadsheetRows(rows);
-        localStorage.setItem('google_sheet_csv_url', rawUrl);
-        updateSyncModalStatus(rawUrl);
-
-        if (isManual) {
-          showToast('구글 스프레드시트 실시간 동기화가 완료되었습니다!', '🎉');
-          googleSheetModal.classList.add('hidden');
-        }
-        return true;
-      } catch (err) {
-        console.warn('Google Sheet Sync Error:', err);
-        if (isManual) {
-          showToast(`동기화 실패: ${err.message || '시트 공유 권한이나 링크를 확인하세요.'}`, '⚠️');
-        }
-        return false;
-      }
-    }
-
-    // Google Sheets Modal Event Listeners
-    document.getElementById('open-sync-modal-btn').addEventListener('click', () => {
-      const activeUrl = localStorage.getItem('google_sheet_csv_url') || CONFIG.googleSheetCsvUrl || '';
-      updateSyncModalStatus(activeUrl);
-      googleSheetModal.classList.remove('hidden');
-    });
-
-    document.getElementById('close-google-sheet-modal-btn').addEventListener('click', () => {
-      googleSheetModal.classList.add('hidden');
-    });
-
-    document.getElementById('close-google-sheet-modal-bottom-btn').addEventListener('click', () => {
-      googleSheetModal.classList.add('hidden');
-    });
-
-    document.getElementById('save-and-sync-btn').addEventListener('click', () => {
-      const url = googleSheetUrlInput.value.trim();
-      if (!url) {
-        showToast('구글 시트 링크를 입력해주세요.', '⚠️');
-        return;
-      }
-      syncGoogleSheet(url, true);
-    });
-
-    disconnectSheetBtn.addEventListener('click', () => {
-      showConfirmModal('구글 시트 연동 해제', '구글 시트 실시간 연동을 해제하고 기본 단어장으로 되돌리시겠습니까?', () => {
-        localStorage.removeItem('google_sheet_csv_url');
-        updateSyncModalStatus('');
-        loadStoredCurriculum();
-        renderUnitTabs();
-        renderWordPills();
-        if (CURRICULUM[0] && CURRICULUM[0].words[0]) {
-          selectWord(CURRICULUM[0].words[0]);
-        }
-        showToast('구글 시트 연동이 해제되었습니다.', '🔄');
-      });
-    });
-
-    copyShareUrlBtn.addEventListener('click', () => {
-      shareUrlDisplay.select();
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(shareUrlDisplay.value);
-        } else {
-          document.execCommand('copy');
-        }
-        showToast('학생용 자동 연동 링크가 복사되었습니다!', '📋');
-      } catch (e) {
-        document.execCommand('copy');
-        showToast('학생용 자동 연동 링크가 복사되었습니다!', '📋');
-      }
-    });
-
-    // Initialize on page load
-    window.onload = async function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sheetParam = urlParams.get('sheet');
-      const targetSheetUrl = sheetParam || localStorage.getItem('google_sheet_csv_url') || CONFIG.googleSheetCsvUrl;
-
-      if (targetSheetUrl) {
-        const ok = await syncGoogleSheet(targetSheetUrl, false);
-        if (ok) {
-          showToast('구글 시트에서 최신 단어장을 불러왔습니다!', '📊');
-          return;
-        }
-      }
-
-      loadStoredCurriculum();
-      renderUnitTabs();
-      renderWordPills();
-      if (CURRICULUM[0] && CURRICULUM[0].words[0]) {
-        selectWord(CURRICULUM[0].words[0]);
-      }
-    };
-  </script>
+    ${c.rule?`<p class="rule">${RULE}</p>`:''}
+  </article>
+  ${code==='2718'?'<button type="button" class="open go" id="decideBtn">我们决定了！ 결정 입력하기</button>':''}
+  <button type="button" class="again" id="again">처음으로</button>`;
+  lastCode=code;picker.hidden=true;form.hidden=true;out.hidden=false;$('team').hidden=true;
+  if($('decideBtn'))$('decideBtn').addEventListener('click',()=>{out.hidden=true;$('decide').hidden=false;$('team').hidden=false;window.scrollTo({top:0});});
+  $('again').addEventListener('click',()=>{out.hidden=true;out.innerHTML='';picker.hidden=false;$('team').hidden=false;input.value='';
+    if(location.hash){history.replaceState(null,'',location.pathname);}});}
+function fromHash(){const k=location.hash.replace('#','');if(VAR[k])show(VAR[k]);}
+window.addEventListener('hashchange',fromHash);fromHash();
+
+/* ---- 시간이 지나면 변수 카드 자동 표시 ---- */
+const MINUTES=(()=>{const m=location.hash.match(/^#t(\d+)$/);return m?+m[1]:10;})();
+const today=new Date().toISOString().slice(0,10);
+function seedOf(g){let h=g*131;for(const ch of today)h=(h*31+ch.charCodeAt(0))%100003;return h;}
+function varFor(g){const h=seedOf(g);return {card:String(1+h%4),seat:Math.floor(h/7)%3};}
+let vtimer=null;
+function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+function armVariable(g,st){
+  const plan=varFor(g); if(st!==plan.seat) return;
+  const key=`hc-${today}-${g}-${st}`;let start=+store(key);
+  if(!start){start=Date.now();store(key,String(start));}
+  clearTimeout(vtimer);
+  const wait=Math.max(0,start+MINUTES*60000-Date.now());
+  vtimer=setTimeout(()=>fireVariable(plan.card),wait);
+}
+function fireVariable(v){const c=CARDS[VCODE[v]];
+  $('vbanner').innerHTML=`<div class="secret"><div class="m-head">变化卡来了！ <span class="ko-i">변수 카드가 도착했어요 · 모둠에 중국어로 알리세요</span></div>
+    <div class="ko-i" style="margin:0">${c.kind}</div><p>${c.items[0]}</p></div>`;
+  $('vbanner').hidden=false;window.scrollTo({top:0,behavior:'smooth'});
+  try{navigator.vibrate&&navigator.vibrate([300,150,300]);}catch(e){}
+}
+
+/* ---- 결정 → 결과 ---- */
+const HOSP={small:{cn:"小医院",close:10,r:{walk:[20,0],taxi:[5,10],bike:[10,0]}},
+            big:{cn:"大医院",close:130,trans:true,r:{taxi:[20,35],bus:[40,2]}},
+            school:{cn:"校医院",close:70,r:{walk:[10,0]}}};
+const TR={walk:"走路",taxi:"打车",bus:"坐公交车",bike:"骑车"};
+const WHO={alone:"一个人去",B:"B",C:"C",D:"D"};
+const VCODE={"1":"5301","2":"6420","3":"7539","4":"8648"};
+const sel={h:null,t:null,c:null,v:"0"};
+function chips(box,obj,key,pre){Object.entries(obj).forEach(([k,t])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.setAttribute('aria-pressed',String(k===pre));
+  b.addEventListener('click',()=>{[...box.children].forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');sel[key]=k;
+  $('res').hidden=true;$('calc').disabled=!(sel.h&&sel.t&&sel.c);});box.appendChild(b);});}
+chips($('dH'),{small:"小医院",big:"大医院",school:"校医院"},'h');
+chips($('dT'),TR,'t');chips($('dC'),WHO,'c');
+chips($('dV'),{"0":"没有","1":"1 堵车","2":"2 取消","3":"3 下雨","4":"4 借钱"},'v',"0");
+const clock=m=>{const t=15*60+50+m;return `下午 ${Math.floor(t/60)-12}:${String(t%60).padStart(2,'0')}`;};
+const L=(cn,ko)=>`<p class="line">${cn}<span class="ko">${ko}</span></p>`;
+$('calc').addEventListener('click',()=>{
+  const H=HOSP[sel.h],r=H.r[sel.t],v=sel.v;
+  if(!r){show2(`<p class="verdict no">没有这条路的信息。</p>`+L('请再看看大家的卡片。','카드에 이 길(병원+교통수단)에 대한 정보가 없어요. 다시 확인해 보세요.'));return;}
+  let [min,cost]=r,ok=true;const lines=[];
+  if(sel.t==='taxi'&&v==='1')min+=15;
+  if(sel.t==='bus'&&v==='3')min+=20;
+  const money=20+(v==='4'?20:0);
+  if(min<H.close) lines.push(L(`${clock(min)} 到${H.cn}，${H.cn}${clock(H.close)}停止看病，来得及。`,'마감 전에 도착합니다.'));
+  else {ok=false;lines.push(L(`${clock(min)} 到${H.cn}，可是${H.cn}${clock(H.close)}停止看病，来不及了。`,'마감 시간에 늦었습니다.'));}
+  if(cost<=money) lines.push(L(cost?`${TR[sel.t]}要 ${cost} 块，A 有 ${money} 块，钱够。`:'不要钱。',cost?'돈이 충분합니다.':'돈이 들지 않습니다.'));
+  else {ok=false;lines.push(L(`${TR[sel.t]}要 ${cost} 块，可是 A 只有 ${money} 块，钱不够。`,'돈이 모자랍니다.'));}
+  if(ok){ if(H.trans) lines.push(L('医院有韩语翻译，A 听得懂医生的话。','통역이 있어 A가 의사 말을 알아듣습니다.'));
+    else if(sel.c!=='alone') lines.push(L(`${sel.c} 陪 A，帮 A 听医生的话。`,`${sel.c}가 옆에서 도와줍니다.`));
+    else lines.push(L('没有翻译，也没有人陪，A 听不太懂医生的话。','통역도 동행도 없어 A가 의사 말을 잘 못 알아듣습니다.'));}
+  const bLate=sel.c==='B'&&sel.h!=='small'&&v!=='2';
+  const sec=[["A",sel.c!=='alone',"有人陪 A 去"],["B",!bLate,bLate?"B 五点的课来不及了":"B 五点的课来得及"],
+             ["C",sel.h==='big',"去了大医院"],["D",sel.h==='school',"去了校医院 (4명 모둠)"]];
+  show2(`<p class="verdict ${ok?'ok':'no'}">${ok?'A 见到医生了！':'A 没见到医生。'}</p>
+    <span class="ko">${ok?'모둠 미션 성공!':'모둠 미션 실패.'}</span>${lines.join('')}
+    <div class="m-head">秘密任务 <span class="ko-i">비밀 미션 결과</span></div>
+    <div class="sm">${sec.map(([w,y,t])=>`<b>${y?'✓':'✗'} ${w}</b><span>${t}</span>`).join('')}</div>`);
+});
+function show2(html){$('res').innerHTML=html;$('res').hidden=false;$('res').scrollIntoView({behavior:'smooth',block:'nearest'});}
+$('backPick').addEventListener('click',()=>{$('res').hidden=true;$('decide').hidden=true;show(lastCode);});
+</script>
 </body>
 </html>

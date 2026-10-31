@@ -92,6 +92,14 @@ li .sub{display:block;font-size:16px;color:var(--ink);margin-top:2px}
 #vbanner .secret{background:var(--paper);border-width:2.5px}
 #vbanner .m-head{font-size:18px}
 @media (prefers-reduced-motion:no-preference){#vbanner:not([hidden]){animation:pop .5s ease-out}@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:none}}}
+.code{display:flex;flex-direction:column;gap:4px;align-items:center;background:var(--wash);border-radius:8px;padding:12px}
+.code b{font:700 24px var(--f-cn);letter-spacing:.04em;font-variant-numeric:tabular-nums;text-align:center}
+.rv{border:1px solid var(--line);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.rv.me{border-color:var(--accent);border-width:2px}
+.rv-h{display:flex;align-items:center;gap:8px;font-family:var(--f-cn)}
+.rv p{margin:0;font:400 15px/1.5 var(--f-cn)}
+.rv .ko{font-size:12.5px}
+.tag{background:var(--accent);color:var(--paper);font:700 12px var(--f-kr);padding:1px 7px;border-radius:999px}
 </style>
 </head>
 <body>
@@ -194,7 +202,7 @@ function show(code,from){const c=CARDS[code];
     </div>
     ${c.rule?`<p class="rule">${RULE}</p>`:''}
   </article>
-  ${code==='2718'?'<button type="button" class="open go" id="decideBtn">我们决定了！ 결정 입력하기</button>':''}
+  ${c.secret?'<button type="button" class="open go" id="decideBtn">我们决定了！ 결정 입력하기</button>':''}
   <button type="button" class="again" id="again">처음으로</button>`;
   lastCode=code;picker.hidden=true;form.hidden=true;out.hidden=false;$('team').hidden=true;
   if($('decideBtn'))$('decideBtn').addEventListener('click',()=>{out.hidden=true;$('decide').hidden=false;$('team').hidden=false;window.scrollTo({top:0});});
@@ -256,12 +264,18 @@ $('calc').addEventListener('click',()=>{
     else if(sel.c!=='alone') lines.push(L(`${sel.c} 陪 A，帮 A 听医生的话。`,`${sel.c}가 옆에서 도와줍니다.`));
     else lines.push(L('没有翻译，也没有人陪，A 听不太懂医生的话。','통역도 동행도 없어 A가 의사 말을 잘 못 알아듣습니다.'));}
   const bLate=sel.c==='B'&&sel.h!=='small'&&v!=='2';
-  const sec=[["A",sel.c!=='alone',"有人陪 A 去"],["B",!bLate,bLate?"B 五点的课来不及了":"B 五点的课来得及"],
-             ["C",sel.h==='big',"去了大医院"],["D",sel.h==='school',"去了校医院 (4명 모둠)"]];
-  show2(`<p class="verdict ${ok?'ok':'no'}">${ok?'A 见到医生了！':'A 没见到医生。'}</p>
+  const RC={A:"2718",B:"3142",C:"1618",D:"4271"};
+  const done={A:sel.c!=='alone',B:!bLate,C:sel.h==='big',D:sel.h==='school'};
+  const HS={small:"小",big:"大",school:"校"},TS={walk:"走",taxi:"打车",bus:"公交",bike:"骑"};
+  const codeStr=`${HS[sel.h]} · ${TS[sel.t]} · ${sel.c==='alone'?'一人':sel.c+'陪'} · ${v==='0'?'无':'变'+v}`;
+  const reveal=Object.entries(RC).map(([w,code])=>{const c=CARDS[code];const me=code===lastCode;
+    return `<div class="rv${me?' me':''}"><div class="rv-h"><b>${done[w]?'✓':'✗'} ${w} ${c.role}</b>${me?'<span class="tag">나</span>':''}${w==='D'?'<span class="ko-i">4명 모둠</span>':''}</div>
+      <p>${c.secret[0]}<span class="ko">${c.secret[1]}</span></p></div>`;}).join('');
+  show2(`<div class="code"><span class="ko-i">결정 코드 · 모둠원과 화면을 맞대 보세요</span><b>${codeStr}</b></div>
+    <p class="verdict ${ok?'ok':'no'}">${ok?'A 见到医生了！':'A 没见到医生。'}</p>
     <span class="ko">${ok?'모둠 미션 성공!':'모둠 미션 실패.'}</span>${lines.join('')}
-    <div class="m-head">秘密任务 <span class="ko-i">비밀 미션 결과</span></div>
-    <div class="sm">${sec.map(([w,y,t])=>`<b>${y?'✓':'✗'} ${w}</b><span>${t}</span>`).join('')}</div>`);
+    <div class="m-head">秘密任务公开 <span class="ko-i">모두의 비밀 미션 공개 · 이건 게임이었어요!</span></div>
+    ${reveal}`);
 });
 function show2(html){$('res').innerHTML=html;$('res').hidden=false;$('res').scrollIntoView({behavior:'smooth',block:'nearest'});}
 $('backPick').addEventListener('click',()=>{$('res').hidden=true;$('decide').hidden=true;show(lastCode);});
